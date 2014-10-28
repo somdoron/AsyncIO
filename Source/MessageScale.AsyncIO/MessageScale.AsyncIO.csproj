@@ -42,15 +42,14 @@
   <ItemGroup>
     <Compile Include="CompletionPortClosedException.cs" />
     <Compile Include="IBuffer.cs" />
-    <Compile Include="IOCP\IOCPCompletionPort.cs" />
-    <Compile Include="IOCP\IOCPSocket.cs" />
-    <Compile Include="IOCP\Overlapped.cs" />
-    <Compile Include="IOCP\SocketAddress.cs" />
-    <Compile Include="IOCP\UnsafeMethods.cs" />
-    <Compile Include="ISocket.cs" />
-    <Compile Include="ICompletionPort.cs" />
+    <Compile Include="Windows\CompletionPort.cs" />
+    <Compile Include="Windows\Socket.cs" />
+    <Compile Include="Windows\Overlapped.cs" />
+    <Compile Include="Windows\SocketAddress.cs" />
+    <Compile Include="Windows\UnsafeMethods.cs" />
+    <Compile Include="OverlappedSocket.cs" />
+    <Compile Include="CompletionPort.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="AsyncIOFactory.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

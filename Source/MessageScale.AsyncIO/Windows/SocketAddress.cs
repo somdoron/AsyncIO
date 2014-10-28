@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace MessageScale.AsyncIO.IOCP
+namespace MessageScale.AsyncIO.Windows
 {
   class SocketAddress : IDisposable
   {

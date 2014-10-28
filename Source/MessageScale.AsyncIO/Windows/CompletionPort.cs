@@ -9,10 +9,16 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
-namespace MessageScale.AsyncIO.IOCP
+namespace MessageScale.AsyncIO.Windows
 {
-    public class IOCPCompletionPort : ICompletionPort
+    class CompletionPort : AsyncIO.CompletionPort
     {
+        struct SocketState
+        {
+            public OverlappedSocket Socket { get; set; }
+            public object State { get; set; }
+        }
+
         private readonly IntPtr m_completionPortHandle;
 
         private readonly IntPtr InvalidCompletionPort = IntPtr.Zero;
@@ -23,15 +29,17 @@ namespace MessageScale.AsyncIO.IOCP
         
         private int m_completionKeySequence = 2;
 
+        private Dictionary<int, SocketState> m_sockets; 
+
         private const int WaitTimeoutError = 258;
         private const int CompletionPortClosed = 735;
 
         private bool m_disposed = false;
 
-        public IOCPCompletionPort(uint concurrentThreads = 1)
+        public CompletionPort()
         {
             m_completionPortHandle =
-              UnsafeMethods.CreateIoCompletionPort(UnsafeMethods.INVALID_HANDLE_VALUE, InvalidCompletionPort, UIntPtr.Zero, concurrentThreads);
+              UnsafeMethods.CreateIoCompletionPort(UnsafeMethods.INVALID_HANDLE_VALUE, InvalidCompletionPort, UIntPtr.Zero, 1);
 
             if (m_completionPortHandle == InvalidCompletionPort || m_completionPortHandle == InvalidCompletionPortMinusOne)
             {
@@ -39,17 +47,28 @@ namespace MessageScale.AsyncIO.IOCP
             }
         }
 
-        ~IOCPCompletionPort()
+        ~CompletionPort()
         {
             Dispose();
-        }
+        }        
 
-        internal void AssociateSocket(IOCPSocket socket)
-       {
-            int completionKey = Interlocked.Increment(ref m_completionKeySequence);
+        public override void AssociateSocket(OverlappedSocket socket, object state)
+        {
+            if (!(socket is Windows.Socket))
+            {
+                throw new ArgumentException("socket must be of type Windows.Socket", "socket");
+            }
 
-            IntPtr result = UnsafeMethods.CreateIoCompletionPort(socket.Handle,
-                m_completionPortHandle, new UIntPtr((uint)completionKey), 0);
+            Socket windowsSocket = socket as Socket;
+
+            m_completionKeySequence++;
+            
+            int completionKey = m_completionKeySequence;            
+
+            m_sockets.Add(completionKey, new SocketState {Socket = socket, State = state});
+            windowsSocket.SetCompletionPort(this, completionKey);
+
+            IntPtr result = UnsafeMethods.CreateIoCompletionPort(windowsSocket.Handle, m_completionPortHandle, new UIntPtr((uint)completionKey), 0);
 
             if (result == InvalidCompletionPort || result == InvalidCompletionPortMinusOne)
             {
@@ -57,7 +76,12 @@ namespace MessageScale.AsyncIO.IOCP
             }
         }
 
-        public CompletionStatus GetQueuedCompletionStatus(int timeout)
+        internal void RemoveSocket(int completionKey)
+        {
+            m_sockets.Remove(completionKey);
+        }
+
+        public override CompletionStatus GetQueuedCompletionStatus(int timeout)
         {
             uint numberOfBytes;
             UIntPtr completionKey;
@@ -85,7 +109,7 @@ namespace MessageScale.AsyncIO.IOCP
             {
                 if (completionKey.Equals(SignalPostCompletionKey))
                 {
-                    return new CompletionStatus(null, OperationType.Signal, SocketError.Success, 0);
+                    return new CompletionStatus(null,null, OperationType.Signal, SocketError.Success, 0);
                 }
                 else
                 {
@@ -94,18 +118,20 @@ namespace MessageScale.AsyncIO.IOCP
                     int bytesTransferred;
                     Overlapped.Read(overlapped, out operationType, out socketError, out bytesTransferred);
 
-                    return new CompletionStatus(null, operationType, socketError, bytesTransferred);
+                    var socketState = m_sockets[(int)completionKey];
+
+                    return new CompletionStatus(socketState.Socket, socketState.State, operationType, socketError, bytesTransferred);
                 }
             }            
         }
 
-      
-        public void Signal()
+
+        public override void Signal()
         {
             UnsafeMethods.PostQueuedCompletionStatus(m_completionPortHandle, 0, SignalPostCompletionKey, IntPtr.Zero);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             if (!m_disposed)
             {
@@ -115,6 +141,6 @@ namespace MessageScale.AsyncIO.IOCP
 
                 GC.SuppressFinalize(this);
             }
-        }
+        }        
     }
 }

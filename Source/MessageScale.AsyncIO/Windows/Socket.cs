@@ -6,11 +6,15 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
-namespace MessageScale.AsyncIO.IOCP
+namespace MessageScale.AsyncIO.Windows
 {
-    public class IOCPSocket : ISocket
+    internal class Socket : OverlappedSocket
     {
+        private CompletionPort m_completionPort;
+        private int m_completionKey;
+
         private Overlapped m_inOverlapped;
         private Overlapped m_outOverlapped;
 
@@ -20,12 +24,13 @@ namespace MessageScale.AsyncIO.IOCP
         private SocketAddress m_boundAddress;
         private SocketAddress m_remoteAddress;
 
-        public IOCPSocket(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
+        private IntPtr m_acceptSocketBufferAddress;
+        private int m_acceptSocketBufferSize;
+
+        public Socket(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
+            : base(addressFamily, socketType, protocolType)
         {
             m_disposed = false;
-            AddressFamily = addressFamily;
-            SocketType = socketType;
-            ProtocolType = protocolType;
 
             m_inOverlapped = new Overlapped();
             m_outOverlapped = new Overlapped();
@@ -34,7 +39,7 @@ namespace MessageScale.AsyncIO.IOCP
             InitDynamicMethods();
         }
 
-        ~IOCPSocket()
+        ~Socket()
         {
             Dispose(false);
         }
@@ -60,21 +65,28 @@ namespace MessageScale.AsyncIO.IOCP
                     m_boundAddress = null;
                 }
 
+                if (m_completionPort != null)
+                {
+                    m_completionPort.RemoveSocket(m_completionKey);
+                    m_completionPort = null;
+                }
+
+                if (m_acceptSocketBufferAddress != IntPtr.Zero)
+                {
+                    Marshal.FreeHGlobal(m_acceptSocketBufferAddress);
+                }
+
                 UnsafeMethods.closesocket(Handle);
             }
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
         public IntPtr Handle { get; private set; }
-
-        public AddressFamily AddressFamily { get; private set; }
-        public SocketType SocketType { get; private set; }
-        public ProtocolType ProtocolType { get; private set; }
 
         private void InitSocket()
         {
@@ -112,19 +124,18 @@ namespace MessageScale.AsyncIO.IOCP
             return Marshal.GetDelegateForFunctionPointer(connectExAddress, type);
         }
 
-        public void BindToCompletionPort(ICompletionPort completionPort)
+        internal void SetCompletionPort(CompletionPort completionPort, int completionKey)
         {
-            IOCPCompletionPort iocpCompletionPort = completionPort as IOCPCompletionPort;
-
-            if (iocpCompletionPort == null)
+            if (m_completionPort != null)
             {
-                throw new ArgumentException("completionPort is not of type IOCP completion port", "completionPort");
+                m_completionPort.RemoveSocket(m_completionKey);
             }
 
-            iocpCompletionPort.AssociateSocket(this);
+            m_completionKey = completionKey;
+            m_completionPort = completionPort;
         }
 
-        public void Bind(IPEndPoint localEndPoint)
+        public override void Bind(IPEndPoint localEndPoint)
         {
             if (m_boundAddress != null)
             {
@@ -142,7 +153,7 @@ namespace MessageScale.AsyncIO.IOCP
             }
         }
 
-        public void Listen(int backlog)
+        public override void Listen(int backlog)
         {
             SocketError bindResult = (SocketError)UnsafeMethods.listen(Handle, backlog);
 
@@ -152,7 +163,7 @@ namespace MessageScale.AsyncIO.IOCP
             }
         }
 
-        public OperationResult Connect(IPEndPoint endPoint)
+        public override OperationResult Connect(IPEndPoint endPoint)
         {
             if (m_remoteAddress != null)
             {
@@ -162,12 +173,12 @@ namespace MessageScale.AsyncIO.IOCP
 
             m_remoteAddress = new SocketAddress(endPoint.Address, endPoint.Port);
 
-            int bytesSend;            
+            int bytesSend;
 
             m_outOverlapped.OperationType = OperationType.Connect;
 
             if (m_connectEx(Handle, m_remoteAddress.Buffer, m_remoteAddress.Size, IntPtr.Zero, 0,
-                out bytesSend, m_outOverlapped.Address))  
+                out bytesSend, m_outOverlapped.Address))
             {
                 return OperationResult.Completed;
             }
@@ -177,24 +188,51 @@ namespace MessageScale.AsyncIO.IOCP
 
                 if (socketError != SocketError.IOPending)
                 {
-                    throw  new SocketException((int)socketError);
+                    throw new SocketException((int)socketError);
                 }
 
                 return OperationResult.Pending;
+            }
+        }
+
+        public override OperationResult Accept(OverlappedSocket socket)
+        {
+            if (m_acceptSocketBufferAddress == IntPtr.Zero)
+            {
+                m_acceptSocketBufferSize = (m_boundAddress.Size + 16) * 2;
+
+                m_acceptSocketBufferAddress = Marshal.AllocHGlobal(m_acceptSocketBufferSize);
             }            
+
+            int bytesReceived;
+
+            var windowsSocket = socket as Windows.Socket;
+
+            if (!m_acceptEx(Handle, windowsSocket.Handle, m_acceptSocketBufferAddress, 0,
+                  m_acceptSocketBufferSize / 2,
+                  m_acceptSocketBufferSize / 2, out bytesReceived, m_inOverlapped.Address))
+            {
+                var socketError = (SocketError)Marshal.GetLastWin32Error();
+
+                if (socketError != SocketError.IOPending)
+                {
+                    throw new SocketException((int)socketError);
+                }
+
+                return OperationResult.Pending;
+            }
+            else
+            {
+                return OperationResult.Completed;
+            }          
         }
 
-        public void BeginAccept(ISocket socket)
+        public override void BeginSend(AsyncIO.Buffer buffer, int offset, int count)
         {
             throw new NotImplementedException();
         }
 
-        public void BeginSend(IBuffer buffer, int offset, int count)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void BeginReceive(IBuffer buffer, int offset, int count)
+        public override void BeginReceive(AsyncIO.Buffer buffer, int offset, int count)
         {
             throw new NotImplementedException();
         }

@@ -19,13 +19,25 @@ namespace MessageScale.AsyncIO
         Completed, Pending
     }
     
-    public interface ISocket : IDisposable
-    {    
-        AddressFamily AddressFamily { get; }
+    public abstract class OverlappedSocket : IDisposable
+    {
+        internal OverlappedSocket(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
+        {
+            AddressFamily = addressFamily;
+            SocketType = socketType;
+            ProtocolType = protocolType;
+        }
 
-        SocketType SocketType { get; }
+        public static OverlappedSocket Create(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
+        {
+            return new MessageScale.AsyncIO.Windows.Socket(addressFamily, socketType, protocolType);
+        }
 
-        ProtocolType ProtocolType { get; }
+        public AddressFamily AddressFamily { get; private set; }
+
+        public SocketType SocketType { get; private set; }
+
+        public ProtocolType ProtocolType { get; private set; }
 
         //bool IsBound { get; }
 
@@ -57,18 +69,18 @@ namespace MessageScale.AsyncIO
 
         //byte[] GetSocketOption(SocketOptionLevel optionLevel, SocketOptionName optionName, int optionLength);
 
-        void BindToCompletionPort(ICompletionPort completionPort);
+        public abstract void Dispose();
+         
+        public abstract void Bind(IPEndPoint localEndPoint);
 
-        void Bind(IPEndPoint localEndPoint);
+        public abstract void Listen(int backlog);
 
-        void Listen(int backlog);
+        public abstract OperationResult Connect(IPEndPoint endPoint);
 
-        OperationResult Connect(IPEndPoint endPoint);        
-        
-        void BeginAccept(ISocket socket);
+        public abstract OperationResult Accept(OverlappedSocket socket);
 
-        void BeginSend(IBuffer buffer, int offset, int count);
+        public abstract void BeginSend(Buffer buffer, int offset, int count);
 
-        void BeginReceive(IBuffer buffer, int offset, int count);
+        public abstract void BeginReceive(Buffer buffer, int offset, int count);
     }
 }
