@@ -7,9 +7,10 @@ using System.Text;
 
 namespace MessageScale.AsyncIO
 {
-    public class CompletionStatus
+    public struct CompletionStatus
     {
-        public CompletionStatus(OverlappedSocket socket, object state, OperationType operationType, SocketError socketError, int bytesTransferred)
+        internal CompletionStatus(OverlappedSocket socket, object state, OperationType operationType, SocketError socketError, int bytesTransferred) : 
+            this()
         {
             Socket = socket;
             State = state;
@@ -18,24 +19,32 @@ namespace MessageScale.AsyncIO
             BytesTransferred = bytesTransferred;
         }
 
-        public OverlappedSocket Socket { get; private set; }
-        public object State { get; private set; }
-        public OperationType OperationType { get; set; }
+        public OverlappedSocket Socket { get; internal set; }
+        public object State { get; internal set; }
+        public OperationType OperationType { get; internal set; }
 
-        public SocketError SocketError { get; private set; }
-        public int BytesTransferred { get; private set; }        
-    }
+        public SocketError SocketError { get; internal set; }
+        public int BytesTransferred { get; internal set; }        
+    }    
    
     public abstract class CompletionPort : IDisposable
     {
         public static CompletionPort Create()
         {
-            return new MessageScale.AsyncIO.Windows.CompletionPort();
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT || ForceDotNet.Forced)
+            {
+                return new MessageScale.AsyncIO.DotNet.CompletionPort();
+            }
+            else
+            {
+                return new MessageScale.AsyncIO.Windows.CompletionPort();
+                
+            }                   
         }
 
         public abstract void Dispose();
 
-        public abstract CompletionStatus GetQueuedCompletionStatus(int timeout);
+        public abstract bool GetQueuedCompletionStatus(int timeout, out CompletionStatus completionStatus);
 
         public abstract void AssociateSocket(OverlappedSocket socket, object state);
 

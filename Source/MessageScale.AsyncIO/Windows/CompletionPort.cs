@@ -31,8 +31,7 @@ namespace MessageScale.AsyncIO.Windows
 
         private Dictionary<int, SocketState> m_sockets; 
 
-        private const int WaitTimeoutError = 258;
-        private const int CompletionPortClosed = 735;
+        private const int WaitTimeoutError = 258;        
 
         private bool m_disposed = false;
 
@@ -45,6 +44,8 @@ namespace MessageScale.AsyncIO.Windows
             {
                 throw new Win32Exception();
             }
+
+            m_sockets = new Dictionary<int, SocketState>();
         }
 
         ~CompletionPort()
@@ -81,7 +82,7 @@ namespace MessageScale.AsyncIO.Windows
             m_sockets.Remove(completionKey);
         }
 
-        public override CompletionStatus GetQueuedCompletionStatus(int timeout)
+        public override bool GetQueuedCompletionStatus(int timeout, out CompletionStatus completionStatus)
         {
             uint numberOfBytes;
             UIntPtr completionKey;
@@ -94,22 +95,20 @@ namespace MessageScale.AsyncIO.Windows
             {
                 int error = Marshal.GetLastWin32Error();
 
-                if (error == CompletionPortClosed)
+                if (error == WaitTimeoutError)
                 {
-                    throw new CompletionPortClosedException();
-                }
-                else if (error != WaitTimeoutError)
-                {
-                    throw new Win32Exception(error);
+                    completionStatus = new CompletionStatus();
+
+                    return false;                    
                 }
 
-                throw new TimeoutException();
+                throw new Win32Exception(error);                                
             }
             else
             {
                 if (completionKey.Equals(SignalPostCompletionKey))
                 {
-                    return new CompletionStatus(null,null, OperationType.Signal, SocketError.Success, 0);
+                    completionStatus = new CompletionStatus(null,null,OperationType.Signal, SocketError.Success, 0);                    
                 }
                 else
                 {
@@ -120,11 +119,12 @@ namespace MessageScale.AsyncIO.Windows
 
                     var socketState = m_sockets[(int)completionKey];
 
-                    return new CompletionStatus(socketState.Socket, socketState.State, operationType, socketError, bytesTransferred);
+                    completionStatus = new CompletionStatus( socketState.Socket, socketState.State, operationType, socketError, bytesTransferred);                    
                 }
-            }            
-        }
+            }
 
+            return true;
+        }
 
         public override void Signal()
         {

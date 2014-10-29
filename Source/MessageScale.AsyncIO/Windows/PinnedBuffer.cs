@@ -6,21 +6,37 @@ using System.Text;
 
 namespace MessageScale.AsyncIO.Windows
 {
-    public class PinnedBuffer : AsyncIO.Buffer
+    class PinnedBuffer : IDisposable
     {
         private GCHandle m_handle;
-
-        public PinnedBuffer(byte[] data) : base(data)
+        
+        public PinnedBuffer(byte[] buffer)
         {
-            m_handle = GCHandle.Alloc(data, GCHandleType.Pinned);
-            BufferAddress = m_handle.AddrOfPinnedObject();
+            SetBuffer(buffer);
         }
 
-        public IntPtr BufferAddress { get; private set; }
+        public byte[] Buffer { get; private set; }
+        public IntPtr Address { get; private set; }
 
-        public override void Dispose()
+        public void Switch(byte[] buffer)
         {
             m_handle.Free();
+
+            SetBuffer(buffer);
+        }
+
+        private void SetBuffer(byte[] buffer)
+        {
+            Buffer = buffer;
+            m_handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            Address = Marshal.UnsafeAddrOfPinnedArrayElement(Buffer, 0);
+        }
+
+        public void Dispose()
+        {
+            m_handle.Free();
+            Buffer = null;
+            Address = IntPtr.Zero;
         }
     }
 }
