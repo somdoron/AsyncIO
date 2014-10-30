@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -16,7 +15,7 @@ namespace AsyncIO.Windows
         }
 
         public byte[] Buffer { get; private set; }
-        public IntPtr Address { get; private set; }
+        public Int64 Address { get; private set; }
 
         public void Switch(byte[] buffer)
         {
@@ -29,14 +28,14 @@ namespace AsyncIO.Windows
         {
             Buffer = buffer;
             m_handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-            Address = Marshal.UnsafeAddrOfPinnedArrayElement(Buffer, 0);
+            Address = Marshal.UnsafeAddrOfPinnedArrayElement(Buffer, 0).ToInt64();
         }
 
         public void Dispose()
         {
             m_handle.Free();
             Buffer = null;
-            Address = IntPtr.Zero;
+            Address = 0;
         }
     }
 }

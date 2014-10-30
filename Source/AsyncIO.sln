@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncIO", "AsyncIO\AsyncIO.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication1", "ConsoleApplication1\ConsoleApplication1.csproj", "{FFBC969E-E5B2-48B8-A2BC-E682A46863F5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncIO3.5", "AsyncIO\AsyncIO3.5.csproj", "{47613611-3C38-47D9-B934-7D7F93D6B8A4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncIO.Tests", "AsyncIO.Tests\AsyncIO.Tests.csproj", "{004B06EA-A72C-4003-8C71-59C63BADDECC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{FFBC969E-E5B2-48B8-A2BC-E682A46863F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FFBC969E-E5B2-48B8-A2BC-E682A46863F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FFBC969E-E5B2-48B8-A2BC-E682A46863F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47613611-3C38-47D9-B934-7D7F93D6B8A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47613611-3C38-47D9-B934-7D7F93D6B8A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47613611-3C38-47D9-B934-7D7F93D6B8A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47613611-3C38-47D9-B934-7D7F93D6B8A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{004B06EA-A72C-4003-8C71-59C63BADDECC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{004B06EA-A72C-4003-8C71-59C63BADDECC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{004B06EA-A72C-4003-8C71-59C63BADDECC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{004B06EA-A72C-4003-8C71-59C63BADDECC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

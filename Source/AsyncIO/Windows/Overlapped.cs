@@ -41,13 +41,19 @@ namespace AsyncIO.Windows
             }
         }
 
-
-
         public static void Read(IntPtr overlapped, out OperationType operationType, out SocketError socketError, out int bytesTransferred)
         {
-            bytesTransferred = (int)Marshal.ReadIntPtr(overlapped, BytesTransferredOffset);
-            socketError = (System.Net.Sockets.SocketError)Marshal.ReadIntPtr(overlapped);
+            bytesTransferred = (int)Marshal.ReadIntPtr(overlapped, BytesTransferredOffset);            
             operationType = (OperationType)Marshal.ReadInt32(overlapped, OperationTypeOffset);            
+
+            if (IntPtr.Size == 4)
+            {              
+              socketError = (System.Net.Sockets.SocketError)Marshal.ReadInt32(overlapped);    
+            }
+            else
+            {
+              socketError = (System.Net.Sockets.SocketError)(Marshal.ReadInt64(overlapped) & 0x7FFFFFFF);    
+            }
         }
 
     }

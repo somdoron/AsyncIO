@@ -48,9 +48,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AsyncIO\AsyncIO.csproj">
-      <Project>{3830B7A3-0225-4FDA-B155-E085E183650C}</Project>
-      <Name>AsyncIO</Name>
+    <ProjectReference Include="..\AsyncIO\AsyncIO3.5.csproj">
+      <Project>{47613611-3c38-47d9-b934-7d7f93d6b8a4}</Project>
+      <Name>AsyncIO3.5</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

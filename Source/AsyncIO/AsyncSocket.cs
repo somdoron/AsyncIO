@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
@@ -21,6 +20,8 @@ namespace AsyncIO
     
     public abstract class AsyncSocket : IDisposable
     {
+        private SocketOptionName IPv6Only = (SocketOptionName) 27;
+
         internal AsyncSocket(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
         {
             AddressFamily = addressFamily;
@@ -44,7 +45,9 @@ namespace AsyncIO
 
         public SocketType SocketType { get; private set; }
 
-        public ProtocolType ProtocolType { get; private set; }        
+        public ProtocolType ProtocolType { get; private set; }
+
+        public abstract IPEndPoint LocalEndPoint { get; }
 
         public bool NoDelay
         {
@@ -77,13 +80,13 @@ namespace AsyncIO
                 if (this.AddressFamily != AddressFamily.InterNetworkV6)
                     throw new NotSupportedException("invalid version");
                 else
-                    return (int)this.GetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only) == 0;
+                    return (int)this.GetSocketOption(SocketOptionLevel.IPv6, IPv6Only) == 0;
             }
             set
             {
                 if (this.AddressFamily != AddressFamily.InterNetworkV6)
                     throw new NotSupportedException("invalid version");
-                this.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, value ? 0 : 1);
+                this.SetSocketOption(SocketOptionLevel.IPv6, IPv6Only, value ? 0 : 1);
             }
         }
 

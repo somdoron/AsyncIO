@@ -23,7 +23,7 @@ namespace ConsoleApplication1
             AutoResetEvent serverEvent = new AutoResetEvent(false);
             
             AsyncSocket listener = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);            
-            completionPort.AssociateSocket(listener, listenerEvent);
+            completionPort.AssociateSocket(listener, listenerEvent);          
 
             AsyncSocket server = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);            
             completionPort.AssociateSocket(server, serverEvent);
@@ -52,6 +52,9 @@ namespace ConsoleApplication1
 
             listener.Bind(IPAddress.Any, 5555);
             listener.Listen(1);
+
+            Console.WriteLine(listener.LocalEndPoint);
+
             Console.WriteLine(listener.Accept(server));
 
             //client.Bind(IPAddress.Any,0);

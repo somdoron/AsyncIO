@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Odbc;
-using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -27,6 +27,11 @@ namespace AsyncIO.DotNet
 
             m_outSocketAsyncEventArgs = new SocketAsyncEventArgs();
             m_outSocketAsyncEventArgs.Completed += OnAsyncCompleted;
+        }
+
+        public override System.Net.IPEndPoint LocalEndPoint
+        {
+            get { return (IPEndPoint)m_socket.LocalEndPoint; }
         }
 
         private void OnAsyncCompleted(object sender, SocketAsyncEventArgs e)
@@ -103,7 +108,7 @@ namespace AsyncIO.DotNet
 
         public override void Dispose()
         {
-            m_socket.Dispose();
+            (m_socket as IDisposable).Dispose();
         }
 
         public override void Bind(System.Net.IPEndPoint localEndPoint)
@@ -191,5 +196,7 @@ namespace AsyncIO.DotNet
                 return OperationResult.Completed;
             }
         }
+
+       
     }
 }
