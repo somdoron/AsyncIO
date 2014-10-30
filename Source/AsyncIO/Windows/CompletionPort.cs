@@ -9,13 +9,13 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
-namespace MessageScale.AsyncIO.Windows
+namespace AsyncIO.Windows
 {
     class CompletionPort : AsyncIO.CompletionPort
     {
         struct SocketState
         {
-            public OverlappedSocket Socket { get; set; }
+            public AsyncSocket Socket { get; set; }
             public object State { get; set; }
         }
 
@@ -53,7 +53,7 @@ namespace MessageScale.AsyncIO.Windows
             Dispose();
         }        
 
-        public override void AssociateSocket(OverlappedSocket socket, object state)
+        public override void AssociateSocket(AsyncSocket socket, object state)
         {
             if (!(socket is Windows.Socket))
             {

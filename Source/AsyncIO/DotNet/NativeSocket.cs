@@ -5,9 +5,9 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 
-namespace MessageScale.AsyncIO.DotNet
+namespace AsyncIO.DotNet
 {
-    class NativeSocket : OverlappedSocket
+    class NativeSocket : AsyncSocket
     {
         private Socket m_socket;
 
@@ -130,7 +130,7 @@ namespace MessageScale.AsyncIO.DotNet
             }
         }
 
-        public override OperationResult Accept(OverlappedSocket socket)
+        public override OperationResult Accept(AsyncSocket socket)
         {
             NativeSocket nativeSocket = (NativeSocket)socket;
 

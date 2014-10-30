@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace MessageScale.AsyncIO.Windows
+namespace AsyncIO.Windows
 {
     class PinnedBuffer : IDisposable
     {

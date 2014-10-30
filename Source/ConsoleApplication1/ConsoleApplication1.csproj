@@ -48,9 +48,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MessageScale.AsyncIO\MessageScale.AsyncIO.csproj">
+    <ProjectReference Include="..\AsyncIO\AsyncIO.csproj">
       <Project>{3830B7A3-0225-4FDA-B155-E085E183650C}</Project>
-      <Name>MessageScale.AsyncIO</Name>
+      <Name>AsyncIO</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

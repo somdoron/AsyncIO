@@ -6,11 +6,10 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
-namespace MessageScale.AsyncIO.Windows
+namespace AsyncIO.Windows
 {
-    internal class Socket : OverlappedSocket
+    internal class Socket : AsyncSocket
     {
         private CompletionPort m_completionPort;
         private int m_completionKey;
@@ -409,7 +408,7 @@ namespace MessageScale.AsyncIO.Windows
             }
         }
 
-        public override OperationResult Accept(OverlappedSocket socket)
+        public override OperationResult Accept(AsyncSocket socket)
         {
             if (m_acceptSocketBufferAddress == IntPtr.Zero)
             {

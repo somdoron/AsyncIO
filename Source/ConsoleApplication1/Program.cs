@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using MessageScale.AsyncIO;
+using AsyncIO;
 
 namespace ConsoleApplication1
 {
@@ -22,13 +22,13 @@ namespace ConsoleApplication1
             AutoResetEvent clientEvent = new AutoResetEvent(false);
             AutoResetEvent serverEvent = new AutoResetEvent(false);
             
-            OverlappedSocket listener = OverlappedSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);            
+            AsyncSocket listener = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);            
             completionPort.AssociateSocket(listener, listenerEvent);
 
-            OverlappedSocket server = OverlappedSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);            
+            AsyncSocket server = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);            
             completionPort.AssociateSocket(server, serverEvent);
 
-            OverlappedSocket client = OverlappedSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);            
+            AsyncSocket client = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);            
             completionPort.AssociateSocket(client, clientEvent);            
 
             Task.Factory.StartNew(() =>

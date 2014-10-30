@@ -5,16 +5,16 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace MessageScale.AsyncIO
+namespace AsyncIO
 {
     public static class SocketExtensions
     {
-        public static void Bind(this OverlappedSocket socket, IPAddress ipAddress, int port)
+        public static void Bind(this AsyncSocket socket, IPAddress ipAddress, int port)
         {
             socket.Bind(new IPEndPoint(ipAddress, port));
         }
 
-        public static OperationResult Connect(this OverlappedSocket socket, IPAddress ipAddress, int port)
+        public static OperationResult Connect(this AsyncSocket socket, IPAddress ipAddress, int port)
         {
             return socket.Connect(new IPEndPoint(ipAddress, port));
         }
@@ -25,7 +25,7 @@ namespace MessageScale.AsyncIO
         /// <param name="socket"></param>
         /// <param name="host">Host name to resolve</param>
         /// <param name="port">Port to connect</param>
-        public static OperationResult Connect(this OverlappedSocket socket, string host, int port)
+        public static OperationResult Connect(this AsyncSocket socket, string host, int port)
         {
             if (host == null)
                 throw new ArgumentNullException("host");
@@ -49,12 +49,12 @@ namespace MessageScale.AsyncIO
             }            
         }
 
-        public static OperationResult Send(this OverlappedSocket socket, byte[] buffer)
+        public static OperationResult Send(this AsyncSocket socket, byte[] buffer)
         {
             return socket.Send(buffer, 0, buffer.Length, SocketFlags.None);
         }
 
-        public static OperationResult Receive(this OverlappedSocket socket, byte[] buffer, out int bytesTransferred)
+        public static OperationResult Receive(this AsyncSocket socket, byte[] buffer, out int bytesTransferred)
         {
             return socket.Receive(buffer, 0, buffer.Length, SocketFlags.None, out bytesTransferred);
         }

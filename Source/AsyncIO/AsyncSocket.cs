@@ -5,10 +5,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading.Tasks;
-using MessageScale.AsyncIO.DotNet;
+using AsyncIO.DotNet;
 
-namespace MessageScale.AsyncIO
+namespace AsyncIO
 {
     public enum OperationType
     {
@@ -20,16 +19,16 @@ namespace MessageScale.AsyncIO
         Completed, Pending
     }
     
-    public abstract class OverlappedSocket : IDisposable
+    public abstract class AsyncSocket : IDisposable
     {
-        internal OverlappedSocket(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
+        internal AsyncSocket(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
         {
             AddressFamily = addressFamily;
             SocketType = socketType;
             ProtocolType = protocolType;
         }
 
-        public static OverlappedSocket Create(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
+        public static AsyncSocket Create(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
         {
             if (Environment.OSVersion.Platform != PlatformID.Win32NT || ForceDotNet.Forced)
             {
@@ -215,7 +214,7 @@ namespace MessageScale.AsyncIO
 
         public abstract OperationResult Connect(IPEndPoint endPoint);
 
-        public abstract OperationResult Accept(OverlappedSocket socket);
+        public abstract OperationResult Accept(AsyncSocket socket);
 
         public abstract OperationResult Send(byte[] buffer, int offset, int count, SocketFlags flags);
 

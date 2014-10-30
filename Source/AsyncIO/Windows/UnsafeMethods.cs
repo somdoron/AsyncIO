@@ -3,7 +3,7 @@ using System.Net.Sockets;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 
-namespace MessageScale.AsyncIO.Windows
+namespace AsyncIO.Windows
 {
     internal delegate bool ConnectExDelegate(IntPtr socketHandle,
       byte[] socketAddress, int socketAddressSize,

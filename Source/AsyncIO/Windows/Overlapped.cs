@@ -2,7 +2,7 @@
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
-namespace MessageScale.AsyncIO.Windows
+namespace AsyncIO.Windows
 {
     class Overlapped : IDisposable
     {

@@ -7,8 +7,8 @@
     <ProjectGuid>{3830B7A3-0225-4FDA-B155-E085E183650C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MessageScale.AsyncIO</RootNamespace>
-    <AssemblyName>MessageScale.AsyncIO</AssemblyName>
+    <RootNamespace>AsyncIO</RootNamespace>
+    <AssemblyName>AsyncIO</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile>
@@ -50,7 +50,7 @@
     <Compile Include="Windows\Overlapped.cs" />
     <Compile Include="Windows\SocketAddress.cs" />
     <Compile Include="Windows\UnsafeMethods.cs" />
-    <Compile Include="OverlappedSocket.cs" />
+    <Compile Include="AsyncSocket.cs" />
     <Compile Include="CompletionPort.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

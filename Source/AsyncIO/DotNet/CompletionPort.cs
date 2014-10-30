@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 
-namespace MessageScale.AsyncIO.DotNet
+namespace AsyncIO.DotNet
 {
     public class CompletionPort : AsyncIO.CompletionPort
     {
@@ -35,9 +35,9 @@ namespace MessageScale.AsyncIO.DotNet
             return false;            
         }
 
-        public override void AssociateSocket(OverlappedSocket overlappedSocket, object state)
+        public override void AssociateSocket(AsyncSocket asyncSocket, object state)
         {
-            var nativeSocket = (NativeSocket)overlappedSocket;
+            var nativeSocket = (NativeSocket)asyncSocket;
             nativeSocket.SetCompletionPort(this, state);
         }
 

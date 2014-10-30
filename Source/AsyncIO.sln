@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageScale.AsyncIO", "MessageScale.AsyncIO\MessageScale.AsyncIO.csproj", "{3830B7A3-0225-4FDA-B155-E085E183650C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncIO", "AsyncIO\AsyncIO.csproj", "{3830B7A3-0225-4FDA-B155-E085E183650C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication1", "ConsoleApplication1\ConsoleApplication1.csproj", "{FFBC969E-E5B2-48B8-A2BC-E682A46863F5}"
 EndProject
