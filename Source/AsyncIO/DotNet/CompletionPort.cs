@@ -40,9 +40,9 @@ namespace AsyncIO.DotNet
             nativeSocket.SetCompletionPort(this, state);
         }
 
-        public override void Signal()
+        public override void Signal(object state)
         {
-            m_queue.Add(new CompletionStatus(null,null, OperationType.Signal, SocketError.Success, 0));
+            m_queue.Add(new CompletionStatus(state, OperationType.Signal, SocketError.Success, 0));
         }
     }
 }

@@ -34,6 +34,11 @@ namespace AsyncIO.DotNet
             get { return (IPEndPoint)m_socket.LocalEndPoint; }
         }
 
+        public override IPEndPoint RemoteEndPoint
+        {
+            get { return (IPEndPoint) m_socket.RemoteEndPoint; }
+        }
+
         private void OnAsyncCompleted(object sender, SocketAsyncEventArgs e)
         {
             OperationType operationType;
@@ -59,10 +64,14 @@ namespace AsyncIO.DotNet
                     throw new ArgumentOutOfRangeException();
             }
 
-            CompletionStatus completionStatus = new CompletionStatus(this, m_state, operationType, e.SocketError,
-                e.BytesTransferred);
+            // operation aborted are not sent to the client
+            if (e.SocketError != SocketError.OperationAborted)
+            {
+                CompletionStatus completionStatus = new CompletionStatus(m_state, operationType, e.SocketError,
+                    e.BytesTransferred);
 
-            m_completionPort.Queue(ref completionStatus);
+                m_completionPort.Queue(ref completionStatus);    
+            }            
         }
 
         internal void SetCompletionPort(CompletionPort completionPort, object state)
@@ -121,37 +130,33 @@ namespace AsyncIO.DotNet
             m_socket.Listen(backlog);
         }
 
-        public override OperationResult Connect(System.Net.IPEndPoint endPoint)
+        public override void Connect(System.Net.IPEndPoint endPoint)
         {
             m_outSocketAsyncEventArgs.RemoteEndPoint = endPoint;
 
-            if (m_socket.ConnectAsync(m_outSocketAsyncEventArgs))
+            if (!m_socket.ConnectAsync(m_outSocketAsyncEventArgs))
             {
-                return OperationResult.Pending;
-            }
-            else
-            {
-                return OperationResult.Completed;
+                CompletionStatus completionStatus = new CompletionStatus(m_state, OperationType.Connect, SocketError.Success, 0);
+
+                m_completionPort.Queue(ref completionStatus);
             }
         }
 
-        public override OperationResult Accept(AsyncSocket socket)
+        public override void Accept(AsyncSocket socket)
         {
             NativeSocket nativeSocket = (NativeSocket)socket;
 
             m_inSocketAsyncEventArgs.AcceptSocket = nativeSocket.m_socket;
 
-            if (m_socket.AcceptAsync(m_inSocketAsyncEventArgs))
+            if (!m_socket.AcceptAsync(m_inSocketAsyncEventArgs))
             {
-                return OperationResult.Pending;
-            }
-            else
-            {
-                return OperationResult.Completed;
+                CompletionStatus completionStatus = new CompletionStatus(m_state, OperationType.Accept, SocketError.Success, 0);
+
+                m_completionPort.Queue(ref completionStatus);
             }
         }
 
-        public override OperationResult Send(byte[] buffer, int offset, int count, SocketFlags flags)
+        public override void Send(byte[] buffer, int offset, int count, SocketFlags flags)
         {                        
             if (m_outSocketAsyncEventArgs.Buffer != buffer)
             {
@@ -162,17 +167,16 @@ namespace AsyncIO.DotNet
                 m_outSocketAsyncEventArgs.SetBuffer(offset, count);
             }
 
-            if (m_socket.SendAsync(m_outSocketAsyncEventArgs))
+            if (!m_socket.SendAsync(m_outSocketAsyncEventArgs))
             {
-                return OperationResult.Pending;
-            }
-            else
-            {
-                return OperationResult.Completed;
+                CompletionStatus completionStatus = new CompletionStatus(m_state, OperationType.Send, m_outSocketAsyncEventArgs.SocketError,
+                    m_outSocketAsyncEventArgs.BytesTransferred);
+
+                m_completionPort.Queue(ref completionStatus);
             }
         }
 
-        public override OperationResult Receive(byte[] buffer, int offset, int count, SocketFlags flags, out int bytesTransferred)
+        public override void Receive(byte[] buffer, int offset, int count, SocketFlags flags)
         {
             m_inSocketAsyncEventArgs.AcceptSocket = null;
 
@@ -185,15 +189,12 @@ namespace AsyncIO.DotNet
                 m_inSocketAsyncEventArgs.SetBuffer(offset, count);
             }
 
-            if (m_socket.ReceiveAsync(m_inSocketAsyncEventArgs))
+            if (!m_socket.ReceiveAsync(m_inSocketAsyncEventArgs))
             {
-                bytesTransferred = 0;
-                return OperationResult.Pending;
-            }
-            else
-            {
-                bytesTransferred = m_inSocketAsyncEventArgs.BytesTransferred;
-                return OperationResult.Completed;
+                CompletionStatus completionStatus = new CompletionStatus(m_state, OperationType.Receive, m_inSocketAsyncEventArgs.SocketError,
+                    m_inSocketAsyncEventArgs.BytesTransferred);
+
+                m_completionPort.Queue(ref completionStatus);
             }
         }
 

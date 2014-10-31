@@ -14,9 +14,9 @@ namespace AsyncIO
             socket.Bind(new IPEndPoint(ipAddress, port));
         }
 
-        public static OperationResult Connect(this AsyncSocket socket, IPAddress ipAddress, int port)
+        public static void Connect(this AsyncSocket socket, IPAddress ipAddress, int port)
         {
-            return socket.Connect(new IPEndPoint(ipAddress, port));
+            socket.Connect(new IPEndPoint(ipAddress, port));
         }
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace AsyncIO
         /// <param name="socket"></param>
         /// <param name="host">Host name to resolve</param>
         /// <param name="port">Port to connect</param>
-        public static OperationResult Connect(this AsyncSocket socket, string host, int port)
+        public static void Connect(this AsyncSocket socket, string host, int port)
         {
             if (host == null)
                 throw new ArgumentNullException("host");
@@ -41,7 +41,7 @@ namespace AsyncIO
 
             if (ipAddress != null)
             {
-                return socket.Connect(ipAddress, port);
+                socket.Connect(ipAddress, port);
             }
             else
             {
@@ -49,14 +49,14 @@ namespace AsyncIO
             }            
         }
 
-        public static OperationResult Send(this AsyncSocket socket, byte[] buffer)
+        public static void Send(this AsyncSocket socket, byte[] buffer)
         {
-            return socket.Send(buffer, 0, buffer.Length, SocketFlags.None);
+            socket.Send(buffer, 0, buffer.Length, SocketFlags.None);
         }
 
-        public static OperationResult Receive(this AsyncSocket socket, byte[] buffer, out int bytesTransferred)
+        public static void Receive(this AsyncSocket socket, byte[] buffer)
         {
-            return socket.Receive(buffer, 0, buffer.Length, SocketFlags.None, out bytesTransferred);
+            socket.Receive(buffer, 0, buffer.Length, SocketFlags.None);
         }
     }
 }

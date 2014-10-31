@@ -79,12 +79,11 @@ namespace AsyncIO.Windows
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool GetQueuedCompletionStatus(IntPtr completionPort, out uint numberOfBytes,
-                                                            out UIntPtr completionKey, out IntPtr overlapped,
+                                                            out IntPtr completionKey, out IntPtr overlapped,
                                                             int milliseconds);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool PostQueuedCompletionStatus(IntPtr completionPort,
-                                                             uint numberOfBytesTransferred, UIntPtr completionKey, IntPtr overlapped);
+        public static extern bool PostQueuedCompletionStatus(IntPtr completionPort, int numberOfBytesTransferred, IntPtr completionKey, IntPtr overlapped);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool CloseHandle(IntPtr hHandle);
@@ -169,6 +168,6 @@ namespace AsyncIO.Windows
         public static extern SocketError getsockopt([In] IntPtr socketHandle, [In] SocketOptionLevel optionLevel, [In] SocketOptionName optionName, out IPv6MulticastRequest optionValue, [In, Out] ref int optionLength);
 
         [DllImport("ws2_32.dll", SetLastError = true)]
-        public static extern SocketError getsockname([In] IntPtr socketHandle, [Out] byte[] socketAddress, [In, Out] ref int socketAddressSize);
+        public static extern SocketError getsockname([In] IntPtr socketHandle, [Out] byte[] socketAddress, [In, Out] ref int socketAddressSize);       
     }
 }

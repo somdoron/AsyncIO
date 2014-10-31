@@ -9,17 +9,15 @@ namespace AsyncIO
 {
     public struct CompletionStatus
     {
-        internal CompletionStatus(AsyncSocket socket, object state, OperationType operationType, SocketError socketError, int bytesTransferred) : 
+        internal CompletionStatus(object state, OperationType operationType, SocketError socketError, int bytesTransferred) : 
             this()
-        {
-            Socket = socket;
+        {            
             State = state;
             OperationType = operationType;
             SocketError = socketError;
             BytesTransferred = bytesTransferred;
         }
-
-        public AsyncSocket Socket { get; internal set; }
+        
         public object State { get; internal set; }
         public OperationType OperationType { get; internal set; }
 
@@ -48,6 +46,6 @@ namespace AsyncIO
 
         public abstract void AssociateSocket(AsyncSocket socket, object state);
 
-        public abstract void Signal();
+        public abstract void Signal(object state);
     }
 }

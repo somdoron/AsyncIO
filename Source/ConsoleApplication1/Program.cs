@@ -14,7 +14,7 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
-            ForceDotNet.Force();
+            //ForceDotNet.Force();
 
             CompletionPort completionPort = CompletionPort.Create();
            
@@ -37,7 +37,7 @@ namespace ConsoleApplication1
 
                 while (true)
                 {
-                    completionPort.GetQueuedCompletionStatus(-1, out completionStatus);
+                    var result = completionPort.GetQueuedCompletionStatus(-1, out completionStatus);
 
                     if (completionStatus.State != null)
                     {
@@ -45,34 +45,43 @@ namespace ConsoleApplication1
                         resetEvent.Set();
                     }
 
-                    Console.WriteLine("{0} {1} {2}", completionStatus.SocketError, completionStatus.OperationType, 
-                        completionStatus.BytesTransferred);
+                    if (result)
+                    {
+                        Console.WriteLine("{0} {1} {2}", completionStatus.SocketError, completionStatus.OperationType,
+                            completionStatus.BytesTransferred);    
+                    }                    
                 }
             });
 
             listener.Bind(IPAddress.Any, 5555);
             listener.Listen(1);
 
-            Console.WriteLine(listener.LocalEndPoint);
-
-            Console.WriteLine(listener.Accept(server));
+            Console.WriteLine(listener.LocalEndPoint);            
 
             //client.Bind(IPAddress.Any,0);
-            Console.WriteLine(client.Connect("localhost", 5555));
+            client.Connect("localhost", 5555);
+
+            Thread.Sleep(100);
+
+            listener.Accept(server);
 
             listenerEvent.WaitOne();
             clientEvent.WaitOne();
 
-            byte[] sendBuffer= new byte[1] {2};
+            byte[] sendBuffer = new byte[1] {2};
             byte[] recvBuffer = new byte[1];
-
-            int read;
             
-            Console.WriteLine(client.Send(sendBuffer));
-            Console.WriteLine("{0} {1}", server.Receive(recvBuffer, out read), read);
+            //client.Send(sendBuffer);
 
-            clientEvent.WaitOne();
+            server.Receive(recvBuffer);
+
+            Console.ReadLine();
+
+            client.Dispose();
+
+            //clientEvent.WaitOne();
             serverEvent.WaitOne();
+            Console.WriteLine("server received");
 
             Console.ReadLine();
         }

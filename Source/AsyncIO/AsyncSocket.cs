@@ -11,12 +11,7 @@ namespace AsyncIO
     public enum OperationType
     {
         Send, Receive, Accept, Connect, Disconnect, Signal
-    }
-
-    public enum OperationResult
-    {
-        Completed, Pending
-    }
+    }   
     
     public abstract class AsyncSocket : IDisposable
     {
@@ -48,6 +43,8 @@ namespace AsyncIO
         public ProtocolType ProtocolType { get; private set; }
 
         public abstract IPEndPoint LocalEndPoint { get; }
+
+        public abstract IPEndPoint RemoteEndPoint { get; }
 
         public bool NoDelay
         {
@@ -215,12 +212,12 @@ namespace AsyncIO
 
         public abstract void Listen(int backlog);
 
-        public abstract OperationResult Connect(IPEndPoint endPoint);
+        public abstract void Connect(IPEndPoint endPoint);
 
-        public abstract OperationResult Accept(AsyncSocket socket);
+        public abstract void Accept(AsyncSocket socket);
 
-        public abstract OperationResult Send(byte[] buffer, int offset, int count, SocketFlags flags);
+        public abstract void Send(byte[] buffer, int offset, int count, SocketFlags flags);
 
-        public abstract OperationResult Receive(byte[] buffer, int offset, int count, SocketFlags flags, out int bytesTransferred);
+        public abstract void Receive(byte[] buffer, int offset, int count, SocketFlags flags);
     }
 }
