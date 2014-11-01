@@ -64,14 +64,14 @@ namespace AsyncIO.DotNet
                     throw new ArgumentOutOfRangeException();
             }
 
-            // operation aborted are not sent to the client
-            if (e.SocketError != SocketError.OperationAborted)
-            {
+            //// operation aborted are not sent to the client
+            //if (e.SocketError != SocketError.OperationAborted)
+            //{
                 CompletionStatus completionStatus = new CompletionStatus(m_state, operationType, e.SocketError,
                     e.BytesTransferred);
 
                 m_completionPort.Queue(ref completionStatus);    
-            }            
+            //}            
         }
 
         internal void SetCompletionPort(CompletionPort completionPort, object state)

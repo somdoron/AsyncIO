@@ -168,6 +168,23 @@ namespace AsyncIO.Windows
         public static extern SocketError getsockopt([In] IntPtr socketHandle, [In] SocketOptionLevel optionLevel, [In] SocketOptionName optionName, out IPv6MulticastRequest optionValue, [In, Out] ref int optionLength);
 
         [DllImport("ws2_32.dll", SetLastError = true)]
-        public static extern SocketError getsockname([In] IntPtr socketHandle, [Out] byte[] socketAddress, [In, Out] ref int socketAddressSize);       
+        public static extern SocketError getsockname([In] IntPtr socketHandle, [Out] byte[] socketAddress, [In, Out] ref int socketAddressSize);
+
+        //[DllImport("kernel32.dll", SetLastError = true)]
+        //public static extern bool GetOverlappedResult(IntPtr hFile,
+        //   IntPtr overlapped,
+        //   out int lpNumberOfBytesTransferred, bool bWait);
+
+        [DllImport("ws2_32.dll", SetLastError = true)]
+        internal static extern bool WSAGetOverlappedResult(
+                                                 [In] IntPtr socketHandle,
+                                                 [In] IntPtr overlapped,
+                                                 [Out] out int bytesTransferred,
+                                                 [In] bool wait,
+                                                 [Out] out SocketFlags socketFlags
+                                                 );
+
+        [DllImport("kernel32.dll")]
+        public static extern bool CancelIoEx(IntPtr hFile, IntPtr overlapped);
     }
 }

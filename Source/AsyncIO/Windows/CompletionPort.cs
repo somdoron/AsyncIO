@@ -21,6 +21,7 @@ namespace AsyncIO.Windows
 
         private readonly IntPtr SignalPostCompletionKey = new IntPtr(1);
         private readonly IntPtr SocketCompletionKey = new IntPtr(2);
+        private readonly IntPtr SocketManualCompletionKey = new IntPtr(3);
 
         private const int WaitTimeoutError = 258;
 
@@ -72,21 +73,21 @@ namespace AsyncIO.Windows
             windowsSocket.SetCompletionPort(this, state);
         }
 
-        internal void PostCompletionStatus(int bytesTransferred, IntPtr overlapped)
+        internal void PostCompletionStatus(IntPtr overlapped)
         {
-            UnsafeMethods.PostQueuedCompletionStatus(m_completionPortHandle, bytesTransferred, SocketCompletionKey, overlapped);
+            UnsafeMethods.PostQueuedCompletionStatus(m_completionPortHandle, 0, SocketManualCompletionKey, overlapped);
         }
 
         public override bool GetQueuedCompletionStatus(int timeout, out CompletionStatus completionStatus)
         {
             uint numberOfBytes;
             IntPtr completionKey;
-            IntPtr overlapped;
+            IntPtr overlappedAddress;
 
             bool result = UnsafeMethods.GetQueuedCompletionStatus(m_completionPortHandle, out numberOfBytes,
-                out completionKey, out overlapped, timeout);
+                out completionKey, out overlappedAddress, timeout);
 
-            if (!result && overlapped == IntPtr.Zero)
+            if (!result && overlappedAddress == IntPtr.Zero)
             {
                 int error = Marshal.GetLastWin32Error();
 
@@ -109,31 +110,44 @@ namespace AsyncIO.Windows
                     completionStatus = new CompletionStatus( state, OperationType.Signal, SocketError.Success, 0);
                 }
                 else
-                {
-                    SocketError socketError = SocketError.Success;
+                {                                     
+                    //if (!result)
+                    //{
+                    //    socketError = (SocketError)Marshal.GetLastWin32Error();
 
-                    if (!result)
+                    //    if (socketError == ConnectionAborted)
+                    //    {
+                    //        completionStatus = new CompletionStatus();
+                    //        return false;
+                    //    }
+                    //    else if (socketError == NetworkNameDeleted)
+                    //    {
+                    //        socketError = SocketError.ConnectionReset;
+                    //    }
+                    //}                    
+
+                    var overlapped = Overlapped.CompleteOperation(overlappedAddress);
+
+                    if (completionKey.Equals(SocketCompletionKey))
                     {
-                        socketError = (SocketError)Marshal.GetLastWin32Error();
+                        int bytesTransferred;
+                        SocketError socketError = SocketError.Success;
+                        SocketFlags socketFlags;
 
-                        if (socketError == ConnectionAborted)
+                        bool operationSucceed = UnsafeMethods.WSAGetOverlappedResult(overlapped.AsyncSocket.Handle, overlappedAddress,
+                            out bytesTransferred, false, out socketFlags);
+
+                        if (!operationSucceed)
                         {
-                            completionStatus = new CompletionStatus();
-                            return false;
+                            socketError = (SocketError)Marshal.GetLastWin32Error();
                         }
-                        else if (socketError == NetworkNameDeleted)
-                        {
-                            socketError = SocketError.ConnectionReset;
-                        }
+
+                        completionStatus = new CompletionStatus(overlapped.State, overlapped.OperationType, socketError, bytesTransferred);                    
+                    }
+                    else
+                    {
+                        completionStatus = new CompletionStatus(overlapped.State, overlapped.OperationType, SocketError.Success, 0);                    
                     }                    
-
-                    OperationType operationType;
-                    int bytesTransferred;                    
-                    object state;                    
-
-                    Overlapped.Read(overlapped, out operationType, out bytesTransferred,  out state);                                               
-
-                    completionStatus = new CompletionStatus(state, operationType, socketError, bytesTransferred);
                 }
             }
 

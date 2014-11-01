@@ -37,18 +37,18 @@ namespace ConsoleApplication1
 
                 while (true)
                 {
-                    var result = completionPort.GetQueuedCompletionStatus(-1, out completionStatus);
-
-                    if (completionStatus.State != null)
-                    {
-                        AutoResetEvent resetEvent = (AutoResetEvent)completionStatus.State;
-                        resetEvent.Set();
-                    }
+                    var result = completionPort.GetQueuedCompletionStatus(-1, out completionStatus);                   
 
                     if (result)
                     {
                         Console.WriteLine("{0} {1} {2}", completionStatus.SocketError, completionStatus.OperationType,
-                            completionStatus.BytesTransferred);    
+                            completionStatus.BytesTransferred);
+
+                        if (completionStatus.State != null)
+                        {
+                            AutoResetEvent resetEvent = (AutoResetEvent)completionStatus.State;
+                            resetEvent.Set();
+                        }
                     }                    
                 }
             });
@@ -56,32 +56,35 @@ namespace ConsoleApplication1
             listener.Bind(IPAddress.Any, 5555);
             listener.Listen(1);
 
-            Console.WriteLine(listener.LocalEndPoint);            
+            //Console.WriteLine(listener.LocalEndPoint);            
 
-            //client.Bind(IPAddress.Any,0);
+            client.Bind(IPAddress.Any,0);
             client.Connect("localhost", 5555);
 
-            Thread.Sleep(100);
+            //Thread.Sleep(100);
 
             listener.Accept(server);
+            
 
             listenerEvent.WaitOne();
             clientEvent.WaitOne();
 
-            byte[] sendBuffer = new byte[1] {2};
+            //byte[] sendBuffer = new byte[1] {2};
             byte[] recvBuffer = new byte[1];
             
-            //client.Send(sendBuffer);
+            ////client.Send(sendBuffer);
 
             server.Receive(recvBuffer);
 
             Console.ReadLine();
 
-            client.Dispose();
+            server.Dispose();
 
-            //clientEvent.WaitOne();
-            serverEvent.WaitOne();
-            Console.WriteLine("server received");
+            //client.Dispose();
+
+            ////clientEvent.WaitOne();
+            //serverEvent.WaitOne();
+            //Console.WriteLine("server received");
 
             Console.ReadLine();
         }

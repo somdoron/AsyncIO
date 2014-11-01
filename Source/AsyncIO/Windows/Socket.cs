@@ -35,8 +35,8 @@ namespace AsyncIO.Windows
         {
             m_disposed = false;
 
-            m_inOverlapped = new Overlapped();
-            m_outOverlapped = new Overlapped();
+            m_inOverlapped = new Overlapped(this);
+            m_outOverlapped = new Overlapped(this);
 
             m_sendWSABuffer = new WSABuffer();
             m_receiveWSABuffer = new WSABuffer();
@@ -68,6 +68,8 @@ namespace AsyncIO.Windows
 
                 m_inOverlapped.Dispose();
                 m_outOverlapped.Dispose();
+
+                UnsafeMethods.CancelIoEx(Handle, IntPtr.Zero);
 
                 int error = UnsafeMethods.closesocket(Handle);
 
@@ -407,13 +409,12 @@ namespace AsyncIO.Windows
 
             int bytesSend;
 
-            m_outOverlapped.OperationType = OperationType.Connect;
+            m_outOverlapped.StartOperation(OperationType.Connect);
 
             if (m_connectEx(Handle, m_remoteAddress.Buffer, m_remoteAddress.Size, IntPtr.Zero, 0,
                 out bytesSend, m_outOverlapped.Address))
-            {
-                m_outOverlapped.SocketError = SocketError.Success;
-                CompletionPort.PostCompletionStatus(0, m_outOverlapped.Address);
+            {                
+                CompletionPort.PostCompletionStatus(m_outOverlapped.Address);
             }
             else
             {
@@ -439,7 +440,7 @@ namespace AsyncIO.Windows
 
             var windowsSocket = socket as Windows.Socket;
 
-            m_inOverlapped.OperationType = OperationType.Accept;
+            m_inOverlapped.StartOperation(OperationType.Accept);
 
             if (!m_acceptEx(Handle, windowsSocket.Handle, m_acceptSocketBufferAddress, 0,
                   m_acceptSocketBufferSize / 2,
@@ -453,9 +454,8 @@ namespace AsyncIO.Windows
                 }                
             }
             else
-            {
-                m_inOverlapped.SocketError = SocketError.Success;
-                CompletionPort.PostCompletionStatus(0, m_inOverlapped.Address);
+            {                
+                CompletionPort.PostCompletionStatus(m_inOverlapped.Address);
             }
         }
 
@@ -475,7 +475,7 @@ namespace AsyncIO.Windows
                 m_sendPinnedBuffer.Switch(buffer);
             }
 
-            m_outOverlapped.OperationType = OperationType.Send;
+            m_outOverlapped.StartOperation(OperationType.Send);
 
             m_sendWSABuffer.Pointer = new IntPtr(m_sendPinnedBuffer.Address + offset);
             m_sendWSABuffer.Length = count;
@@ -508,7 +508,7 @@ namespace AsyncIO.Windows
                 m_receivePinnedBuffer.Switch(buffer);
             }
 
-            m_inOverlapped.OperationType = OperationType.Receive;
+            m_inOverlapped.StartOperation(OperationType.Receive);
 
             m_receiveWSABuffer.Pointer = new IntPtr(m_receivePinnedBuffer.Address + offset);
             m_receiveWSABuffer.Length = count;
