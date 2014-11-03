@@ -44,6 +44,9 @@ namespace AsyncIO
 
         public abstract bool GetQueuedCompletionStatus(int timeout, out CompletionStatus completionStatus);
 
+        public abstract bool GetMultipleQueuedCompletionStatus(int timeout, CompletionStatus[] completionStatuses,
+            out int removed);
+
         public abstract void AssociateSocket(AsyncSocket socket, object state);
 
         public abstract void Signal(object state);

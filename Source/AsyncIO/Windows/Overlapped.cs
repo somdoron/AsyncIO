@@ -61,6 +61,11 @@ namespace AsyncIO.Windows
 
         public Windows.Socket AsyncSocket { get; private set; }
 
+        public bool Success
+        {
+            get { return Marshal.ReadIntPtr(m_address).Equals(IntPtr.Zero); }
+        }
+
         public bool InProgress { get; private set; }
 
         public bool Disposed { get; private set; }

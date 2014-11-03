@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -32,10 +33,14 @@ namespace AsyncIO.Windows
 
         private ConcurrentQueue<object> m_signalQueue;
 
+        private OverlappedEntry[] m_overlappedEntries;
+        private GCHandle m_overlappedEntriesHandle;
+        private IntPtr m_overlappedEntriesAddress;
+
         public CompletionPort()
         {
             m_completionPortHandle =
-              UnsafeMethods.CreateIoCompletionPort(UnsafeMethods.INVALID_HANDLE_VALUE, InvalidCompletionPort, UIntPtr.Zero, 1);
+              UnsafeMethods.CreateIoCompletionPort(UnsafeMethods.INVALID_HANDLE_VALUE, InvalidCompletionPort, IntPtr.Zero, 1);
 
             if (m_completionPortHandle == InvalidCompletionPort || m_completionPortHandle == InvalidCompletionPortMinusOne)
             {
@@ -62,7 +67,7 @@ namespace AsyncIO.Windows
             if (windowsSocket.CompletionPort != this)
             {
                 IntPtr result = UnsafeMethods.CreateIoCompletionPort(windowsSocket.Handle, m_completionPortHandle,
-                  new UIntPtr((uint)SocketCompletionKey), 0);
+                  SocketCompletionKey, 0);
 
                 if (result == InvalidCompletionPort || result == InvalidCompletionPortMinusOne)
                 {
@@ -78,13 +83,53 @@ namespace AsyncIO.Windows
             UnsafeMethods.PostQueuedCompletionStatus(m_completionPortHandle, 0, SocketManualCompletionKey, overlapped);
         }
 
+        public override bool GetMultipleQueuedCompletionStatus(int timeout, CompletionStatus[] completionStatuses, out int removed)
+        {
+            if (m_overlappedEntries == null || m_overlappedEntries.Length < completionStatuses.Length)
+            {
+                if (m_overlappedEntries != null)
+                {
+                    m_overlappedEntriesHandle.Free();
+                }
+
+                m_overlappedEntries = new OverlappedEntry[completionStatuses.Length];
+
+                m_overlappedEntriesHandle = GCHandle.Alloc(m_overlappedEntries, GCHandleType.Pinned);
+                m_overlappedEntriesAddress = Marshal.UnsafeAddrOfPinnedArrayElement(m_overlappedEntries, 0);
+            }
+
+            bool result = UnsafeMethods.GetQueuedCompletionStatusEx(m_completionPortHandle, m_overlappedEntriesAddress,
+                completionStatuses.Length, out removed, timeout, false);
+
+            if (!result)
+            {
+                int error = Marshal.GetLastWin32Error();
+
+                if (error == WaitTimeoutError)
+                {
+                    removed = 0;
+                    return false;
+                }
+
+                throw new Win32Exception(error);
+            }
+
+            for (int i = 0; i < removed; i++)
+            {
+                HandleCompletionStatus(out completionStatuses[i], m_overlappedEntries[i].Overlapped,
+                    m_overlappedEntries[i].CompletionKey, m_overlappedEntries[i].BytesTransferred);
+            }
+
+            return true;
+        }
+
         public override bool GetQueuedCompletionStatus(int timeout, out CompletionStatus completionStatus)
         {
-            uint numberOfBytes;
+            int bytesTransferred;
             IntPtr completionKey;
             IntPtr overlappedAddress;
 
-            bool result = UnsafeMethods.GetQueuedCompletionStatus(m_completionPortHandle, out numberOfBytes,
+            bool result = UnsafeMethods.GetQueuedCompletionStatus(m_completionPortHandle, out bytesTransferred,
                 out completionKey, out overlappedAddress, timeout);
 
             if (!result && overlappedAddress == IntPtr.Zero)
@@ -110,48 +155,49 @@ namespace AsyncIO.Windows
                     completionStatus = new CompletionStatus( state, OperationType.Signal, SocketError.Success, 0);
                 }
                 else
-                {                                     
-                    //if (!result)
-                    //{
-                    //    socketError = (SocketError)Marshal.GetLastWin32Error();
-
-                    //    if (socketError == ConnectionAborted)
-                    //    {
-                    //        completionStatus = new CompletionStatus();
-                    //        return false;
-                    //    }
-                    //    else if (socketError == NetworkNameDeleted)
-                    //    {
-                    //        socketError = SocketError.ConnectionReset;
-                    //    }
-                    //}                    
-
-                    var overlapped = Overlapped.CompleteOperation(overlappedAddress);
-
-                    if (completionKey.Equals(SocketCompletionKey))
-                    {
-                        int bytesTransferred;
-                        SocketError socketError = SocketError.Success;
-                        SocketFlags socketFlags;
-
-                        bool operationSucceed = UnsafeMethods.WSAGetOverlappedResult(overlapped.AsyncSocket.Handle, overlappedAddress,
-                            out bytesTransferred, false, out socketFlags);
-
-                        if (!operationSucceed)
-                        {
-                            socketError = (SocketError)Marshal.GetLastWin32Error();
-                        }
-
-                        completionStatus = new CompletionStatus(overlapped.State, overlapped.OperationType, socketError, bytesTransferred);                    
-                    }
-                    else
-                    {
-                        completionStatus = new CompletionStatus(overlapped.State, overlapped.OperationType, SocketError.Success, 0);                    
-                    }                    
+                {
+                    HandleCompletionStatus(out completionStatus, overlappedAddress, completionKey, bytesTransferred);
                 }
             }
 
             return true;
+        }
+
+        private void HandleCompletionStatus(out CompletionStatus completionStatus, IntPtr overlappedAddress,
+            IntPtr completionKey, int bytesTransferred)
+        {
+            var overlapped = Overlapped.CompleteOperation(overlappedAddress);
+
+            if (completionKey.Equals(SocketCompletionKey))
+            {
+                // if the overlapped ntstatus is zero we assume success and don't call get overlapped result for optimization
+                if (overlapped.Success)
+                {
+                    completionStatus = new CompletionStatus(overlapped.State, overlapped.OperationType, SocketError.Success,
+                        bytesTransferred);
+                }
+                else
+                {
+                    SocketError socketError = SocketError.Success;
+                    SocketFlags socketFlags;
+
+                    bool operationSucceed = UnsafeMethods.WSAGetOverlappedResult(overlapped.AsyncSocket.Handle,
+                        overlappedAddress,
+                        out bytesTransferred, false, out socketFlags);
+
+                    if (!operationSucceed)
+                    {
+                        socketError = (SocketError) Marshal.GetLastWin32Error();
+                    }
+
+                    completionStatus = new CompletionStatus(overlapped.State, overlapped.OperationType, socketError,
+                        bytesTransferred);
+                }
+            }
+            else
+            {
+                completionStatus = new CompletionStatus(overlapped.State, overlapped.OperationType, SocketError.Success, 0);
+            }
         }
 
         public override void Signal(object state)
@@ -165,6 +211,12 @@ namespace AsyncIO.Windows
             if (!m_disposed)
             {
                 m_disposed = true;
+
+                if (m_overlappedEntries != null)
+                {
+                    m_overlappedEntries = null;
+                    m_overlappedEntriesHandle.Free();
+                }
 
                 UnsafeMethods.CloseHandle(m_completionPortHandle);
 

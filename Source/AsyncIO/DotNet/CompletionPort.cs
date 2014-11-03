@@ -34,6 +34,25 @@ namespace AsyncIO.DotNet
             return false;            
         }
 
+        public override bool GetMultipleQueuedCompletionStatus(int timeout, CompletionStatus[] completionStatuses, out int removed)
+        {
+            removed = 0;
+
+            if (m_queue.TryTake(out completionStatuses[0], timeout))
+            {
+                removed++;
+
+                while (removed < completionStatuses.Length && m_queue.TryTake(out completionStatuses[removed], 0))
+                {
+                    removed++;
+                }
+
+                return true;
+            }
+            
+            return false;
+        }
+
         public override void AssociateSocket(AsyncSocket asyncSocket, object state)
         {
             var nativeSocket = (NativeSocket)asyncSocket;

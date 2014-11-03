@@ -61,6 +61,14 @@ namespace AsyncIO.Windows
         }
     }
 
+    struct OverlappedEntry
+    {
+        public IntPtr CompletionKey;
+        public IntPtr Overlapped;
+        public IntPtr Internal;
+        public int BytesTransferred;
+    }
+
     internal static class UnsafeMethods
     {
         public static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
@@ -75,15 +83,20 @@ namespace AsyncIO.Windows
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr CreateIoCompletionPort(IntPtr fileHandle, IntPtr existingCompletionPort,
-                                                           UIntPtr completionKey, uint numberOfConcurrentThreads);
+                                                           IntPtr completionKey, uint numberOfConcurrentThreads);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool GetQueuedCompletionStatus(IntPtr completionPort, out uint numberOfBytes,
+        public static extern bool GetQueuedCompletionStatus(IntPtr completionPort, out int numberOfBytes,
                                                             out IntPtr completionKey, out IntPtr overlapped,
                                                             int milliseconds);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool PostQueuedCompletionStatus(IntPtr completionPort, int numberOfBytesTransferred, IntPtr completionKey, IntPtr overlapped);
+        public static extern bool GetQueuedCompletionStatusEx(IntPtr completionPort, IntPtr completionPortEntries,
+                                                            int count, out int removoed, int milliseconds, bool alertable);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool PostQueuedCompletionStatus(IntPtr completionPort, int numberOfBytesTransferred,
+            IntPtr completionKey, IntPtr overlapped);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool CloseHandle(IntPtr hHandle);
@@ -168,12 +181,7 @@ namespace AsyncIO.Windows
         public static extern SocketError getsockopt([In] IntPtr socketHandle, [In] SocketOptionLevel optionLevel, [In] SocketOptionName optionName, out IPv6MulticastRequest optionValue, [In, Out] ref int optionLength);
 
         [DllImport("ws2_32.dll", SetLastError = true)]
-        public static extern SocketError getsockname([In] IntPtr socketHandle, [Out] byte[] socketAddress, [In, Out] ref int socketAddressSize);
-
-        //[DllImport("kernel32.dll", SetLastError = true)]
-        //public static extern bool GetOverlappedResult(IntPtr hFile,
-        //   IntPtr overlapped,
-        //   out int lpNumberOfBytesTransferred, bool bWait);
+        public static extern SocketError getsockname([In] IntPtr socketHandle, [Out] byte[] socketAddress, [In, Out] ref int socketAddressSize);        
 
         [DllImport("ws2_32.dll", SetLastError = true)]
         internal static extern bool WSAGetOverlappedResult(

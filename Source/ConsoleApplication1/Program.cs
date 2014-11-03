@@ -14,7 +14,7 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
-            //ForceDotNet.Force();
+            ForceDotNet.Force();
 
             CompletionPort completionPort = CompletionPort.Create();
            
@@ -22,25 +22,29 @@ namespace ConsoleApplication1
             AutoResetEvent clientEvent = new AutoResetEvent(false);
             AutoResetEvent serverEvent = new AutoResetEvent(false);
             
-            AsyncSocket listener = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);            
+            AsyncSocket listener = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);                        
             completionPort.AssociateSocket(listener, listenerEvent);          
 
             AsyncSocket server = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);            
             completionPort.AssociateSocket(server, serverEvent);
 
             AsyncSocket client = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);            
-            completionPort.AssociateSocket(client, clientEvent);            
+            completionPort.AssociateSocket(client, clientEvent);
 
             Task.Factory.StartNew(() =>
             {
-                CompletionStatus completionStatus;
+                CompletionStatus []completionStatuses = new CompletionStatus[10];
+
+                int removed;
 
                 while (true)
-                {
-                    var result = completionPort.GetQueuedCompletionStatus(-1, out completionStatus);                   
+                {                    
+                    var result = completionPort.GetMultipleQueuedCompletionStatus(-1, completionStatuses, out removed);
 
-                    if (result)
+                    for (int i = 0; i < removed; i++)
                     {
+                        var completionStatus = completionStatuses[i];
+
                         Console.WriteLine("{0} {1} {2}", completionStatus.SocketError, completionStatus.OperationType,
                             completionStatus.BytesTransferred);
 
@@ -48,8 +52,12 @@ namespace ConsoleApplication1
                         {
                             AutoResetEvent resetEvent = (AutoResetEvent)completionStatus.State;
                             resetEvent.Set();
-                        }
-                    }                    
+                        }                        
+                    }
+
+                    Console.WriteLine("Handled {0} statuses", removed);
+
+                    Thread.Sleep(100);
                 }
             });
 
@@ -61,30 +69,22 @@ namespace ConsoleApplication1
             client.Bind(IPAddress.Any,0);
             client.Connect("localhost", 5555);
 
-            //Thread.Sleep(100);
+            ////Thread.Sleep(100);
 
             listener.Accept(server);
             
-
             listenerEvent.WaitOne();
             clientEvent.WaitOne();
 
-            //byte[] sendBuffer = new byte[1] {2};
+            byte[] sendBuffer = new byte[1] {2};
             byte[] recvBuffer = new byte[1];
-            
-            ////client.Send(sendBuffer);
 
             server.Receive(recvBuffer);
+            client.Send(sendBuffer);          
 
-            Console.ReadLine();
-
-            server.Dispose();
-
-            //client.Dispose();
-
-            ////clientEvent.WaitOne();
-            //serverEvent.WaitOne();
-            //Console.WriteLine("server received");
+            clientEvent.WaitOne();
+            serverEvent.WaitOne();
+            ////Console.WriteLine("server received");
 
             Console.ReadLine();
         }
