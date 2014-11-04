@@ -23,13 +23,16 @@ Using AsyncIO is very similiar to using .Net Socket, to get the completion event
         AutoResetEvent clientEvent = new AutoResetEvent(false);
         AutoResetEvent serverEvent = new AutoResetEvent(false);
 
-        AsyncSocket listener = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        AsyncSocket listener = AsyncSocket.Create(AddressFamily.InterNetwork, 
+            SocketType.Stream, ProtocolType.Tcp);
         completionPort.AssociateSocket(listener, listenerEvent);
 
-        AsyncSocket server = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        AsyncSocket server = AsyncSocket.Create(AddressFamily.InterNetwork, 
+            SocketType.Stream, ProtocolType.Tcp);
         completionPort.AssociateSocket(server, serverEvent);
 
-        AsyncSocket client = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        AsyncSocket client = AsyncSocket.Create(AddressFamily.InterNetwork, 
+            SocketType.Stream, ProtocolType.Tcp);
         completionPort.AssociateSocket(client, clientEvent);
 
         Task.Factory.StartNew(() =>
@@ -42,8 +45,8 @@ Using AsyncIO is very similiar to using .Net Socket, to get the completion event
 
                 if (result)
                 {
-                    Console.WriteLine("{0} {1} {2}", completionStatus.SocketError, completionStatus.OperationType,
-                        completionStatus.BytesTransferred);
+                    Console.WriteLine("{0} {1} {2}", completionStatus.SocketError, 
+                        completionStatus.OperationType, completionStatus.BytesTransferred);
 
                     if (completionStatus.State != null)
                     {
