@@ -10,14 +10,7 @@ namespace AsyncIO
     {
         public static CompletionPort Create()
         {
-            if (Environment.OSVersion.Platform != PlatformID.Win32NT || ForceDotNet.Forced)
-            {
-                return new AsyncIO.DotNet.CompletionPort();
-            }
-            else
-            {
-                return new AsyncIO.Windows.CompletionPort();                
-            }                   
+            return new AsyncIO.DotNet.CompletionPort();
         }
 
         public abstract void Dispose();

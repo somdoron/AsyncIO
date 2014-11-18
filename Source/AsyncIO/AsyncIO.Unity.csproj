@@ -4,21 +4,22 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3830B7A3-0225-4FDA-B155-E085E183650C}</ProjectGuid>
+    <ProjectGuid>{643764AA-60E3-4E6E-9188-1352B23C26A2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>AsyncIO</RootNamespace>
     <AssemblyName>AsyncIO</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
+    <BaseIntermediateOutputPath>obj\Unity\</BaseIntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin\Unity\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -26,7 +27,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin\Unity\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -46,23 +47,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AsyncSocket.Unity.cs" />
+    <Compile Include="BlockingCollection.cs" />
+    <Compile Include="CompletionPort.Unity.cs" />
     <Compile Include="CompletionStatus.cs" />
+    <Compile Include="ConcurrentQueue.cs" />
     <Compile Include="DotNet\CompletionPort.cs" />
     <Compile Include="DotNet\NativeSocket.cs" />
     <Compile Include="ForceDotNet.cs" />
     <Compile Include="SocketExtensions.cs" />
-    <Compile Include="Windows\CompletionPort.cs" />
-    <Compile Include="Windows\PinnedBuffer.cs" />
-    <Compile Include="Windows\Socket.cs" />
-    <Compile Include="Windows\Overlapped.cs" />
-    <Compile Include="Windows\SocketAddress.cs" />
-    <Compile Include="Windows\UnsafeMethods.cs" />
-    <Compile Include="AsyncSocket.cs" />
-    <Compile Include="CompletionPort.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="AsyncIO.nuspec" />
     <None Include="asyncio.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

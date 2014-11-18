@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncIO", "AsyncIO\AsyncIO.csproj", "{3830B7A3-0225-4FDA-B155-E085E183650C}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncIO.Tests", "AsyncIO.Tests\AsyncIO.Tests.csproj", "{004B06EA-A72C-4003-8C71-59C63BADDECC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication2", "ConsoleApplication2\ConsoleApplication2.csproj", "{6EA1EA0B-9828-47B3-AEE3-586ECE9933B8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncIO.Unity", "AsyncIO\AsyncIO.Unity.csproj", "{643764AA-60E3-4E6E-9188-1352B23C26A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{6EA1EA0B-9828-47B3-AEE3-586ECE9933B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6EA1EA0B-9828-47B3-AEE3-586ECE9933B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6EA1EA0B-9828-47B3-AEE3-586ECE9933B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{643764AA-60E3-4E6E-9188-1352B23C26A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{643764AA-60E3-4E6E-9188-1352B23C26A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{643764AA-60E3-4E6E-9188-1352B23C26A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{643764AA-60E3-4E6E-9188-1352B23C26A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

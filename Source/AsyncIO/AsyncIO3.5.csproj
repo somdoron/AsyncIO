@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlockingCollection.cs" />
+    <Compile Include="CompletionStatus.cs" />
     <Compile Include="ConcurrentQueue.cs" />
     <Compile Include="DotNet\CompletionPort.cs" />
     <Compile Include="DotNet\NativeSocket.cs" />
