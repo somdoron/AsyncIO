@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>AsyncIO.Unity</id>
+    <version>$version$</version>
+    <title>AsyncIO Unity</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <!--<licenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</licenseUrl>-->
+    <projectUrl>http://github.com/somdoron/AsyncIO</projectUrl>
+    <!--<iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>-->
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <!--<releaseNotes>Summary of changes made in this release of the package.</releaseNotes>-->
+    <copyright>Copyright 2014</copyright>
+    <tags>IOCP CompletionPort Completion Port Socket IO Sockets Async</tags>
+    <!--<dependencies>
+      <dependency id="SampleDependency" version="1.0" />
+    </dependencies>-->    
+  </metadata>
+  <files>    
+    <file src="bin\Unity\Release\AsyncIO.dll" target="lib\net35\" />
+  </files>
+</package>
