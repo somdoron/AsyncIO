@@ -73,10 +73,8 @@ namespace AsyncIO.Windows
     {
         public static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
 
-        public static readonly Guid WSAID_CONNECTEX = new Guid("{0x25a207b9,0x0ddf3,0x4660,{0x8e,0xe9,0x76,0xe5,0x8c,0x74,0x06,0x3e}}");
-
-        public static readonly Guid WSAID_ACCEPT_EX =
-          new Guid("{0xb5367df1,0xcbac,0x11cf,{0x95, 0xca, 0x00, 0x80, 0x5f, 0x48, 0xa1, 0x92}}");
+        public static readonly Guid WSAID_CONNECTEX = new Guid("25a207b9-ddf3-4660-8ee9-76e58c74063e");
+        public static readonly Guid WSAID_ACCEPT_EX = new Guid("b5367df1-cbac-11cf-95ca-00805f48a192");
 
         public const int GetExtensionFunctionPointer = -939524090;
 
