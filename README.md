@@ -15,6 +15,8 @@ You can install AsyncIO from [nuget](http://www.nuget.org/packages/AsyncIO/).
 
 Using AsyncIO is very similiar to using .Net Socket, to get the completion event of the operation you need to call GetQueuedCompletionStatus method of the completion port.
 
+```csharp
+
     static void Main(string[] args)
     {
         CompletionPort completionPort = CompletionPort.Create();
@@ -80,5 +82,5 @@ Using AsyncIO is very similiar to using .Net Socket, to get the completion event
         server.Dispose();
         client.Dispose();
     }
-
+```
 
