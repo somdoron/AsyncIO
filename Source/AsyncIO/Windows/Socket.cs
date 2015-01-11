@@ -361,6 +361,21 @@ namespace AsyncIO.Windows
             throw new NotImplementedException();
         }
 
+        public override int IOControl(IOControlCode ioControlCode, byte[] optionInValue, byte[] optionOutValue)
+        {
+            int bytesTransferred = 0;
+
+            if (UnsafeMethods.WSAIoctl_Blocking(Handle, (int) ioControlCode, optionInValue,
+                optionInValue != null ? optionInValue.Length : 0, optionOutValue,
+                optionOutValue != null ? optionOutValue.Length : 0, out bytesTransferred, IntPtr.Zero, IntPtr.Zero) !=
+                SocketError.SocketError)
+            {
+                return bytesTransferred;
+            }
+
+            throw new SocketException();
+        }
+
         public override void Bind(IPEndPoint localEndPoint)
         {
             if (m_boundAddress != null)

@@ -40,7 +40,7 @@ namespace AsyncIO.DotNet
         }
 
         private void OnAsyncCompleted(object sender, SocketAsyncEventArgs e)
-        {
+        {            
             OperationType operationType;
 
             switch (e.LastOperation)
@@ -113,6 +113,12 @@ namespace AsyncIO.DotNet
         public override byte[] GetSocketOption(SocketOptionLevel optionLevel, SocketOptionName optionName, int optionLength)
         {
             return m_socket.GetSocketOption(optionLevel, optionName, optionLength);
+        }
+
+
+        public override int IOControl(IOControlCode ioControlCode, byte[] optionInValue, byte[] optionOutValue)
+        {
+            return m_socket.IOControl(ioControlCode, optionInValue, optionOutValue);
         }
 
         public override void Dispose()

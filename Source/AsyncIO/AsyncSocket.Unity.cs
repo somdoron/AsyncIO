@@ -199,6 +199,8 @@ namespace AsyncIO
         public abstract void GetSocketOption(SocketOptionLevel optionLevel, SocketOptionName optionName, byte[] optionValue);
         public abstract byte[] GetSocketOption(SocketOptionLevel optionLevel, SocketOptionName optionName, int optionLength);
 
+        public abstract int IOControl(IOControlCode ioControlCode, byte[] optionInValue, byte[] optionOutValue);
+
         public abstract void Dispose();
 
         public abstract void Bind(IPEndPoint localEndPoint);

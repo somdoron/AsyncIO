@@ -130,6 +130,9 @@ namespace AsyncIO.Windows
             /* IntPtr.Zero, IntPtr.Zero */
             IntPtr lpOverlapped, IntPtr lpCompletionRoutine);
 
+        [DllImport("ws2_32.dll", EntryPoint = "WSAIoctl", SetLastError = true)]
+        public static extern SocketError WSAIoctl_Blocking([In] IntPtr socketHandle, [In] int ioControlCode, [In] byte[] inBuffer, [In] int inBufferSize, [Out] byte[] outBuffer, [In] int outBufferSize, out int bytesTransferred, [In] IntPtr overlapped, [In] IntPtr completionRoutine);
+
         [DllImport("Ws2_32.dll")]
         public static extern int bind(IntPtr s, byte[] socketAddress, int addrsize);
 

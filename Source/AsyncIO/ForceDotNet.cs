@@ -12,5 +12,10 @@ namespace AsyncIO
         {
             Forced = true;
         }
+
+        public static void Unforce()
+        {
+            Forced = false;
+        }
     }
 }
