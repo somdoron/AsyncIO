@@ -20,7 +20,7 @@ namespace AsyncIO
         public abstract bool GetMultipleQueuedCompletionStatus(int timeout, CompletionStatus[] completionStatuses,
             out int removed);
 
-        public abstract void AssociateSocket(AsyncSocket socket, object state);
+        public abstract void AssociateSocket(AsyncSocket socket, object state= null);
 
         public abstract void Signal(object state);
     }

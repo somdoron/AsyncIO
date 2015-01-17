@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
@@ -105,7 +106,93 @@ namespace AsyncIO.Tests
             Assert.AreEqual(clientSocket.LocalEndPoint, server.RemoteEndPoint);
             Assert.AreEqual(clientSocket.RemoteEndPoint, server.LocalEndPoint);
 
+            completionPort.Dispose();
+            listenSocket.Dispose();
+            server.Dispose();
+            clientSocket.Dispose();
+        }
 
+        [Test]
+        public void SendReceive()
+        {
+            CompletionPort completionPort = CompletionPort.Create();
+
+            bool exception = false;
+
+            var task = Task.Factory.StartNew(() =>
+            {
+                bool cancel = false;
+
+                while (!cancel)
+                {
+                    CompletionStatus [] completionStatuses = new CompletionStatus[10];
+
+                    int removed;
+
+                    completionPort.GetMultipleQueuedCompletionStatus(-1, completionStatuses, out removed);
+
+                    for (int i = 0; i < removed; i++)
+                    {
+                        if (completionStatuses[i].OperationType == OperationType.Signal)
+                        {
+                            cancel = true;
+                        }
+                        else if (completionStatuses[i].SocketError == SocketError.Success)
+                        {
+                            EventWaitHandle manualResetEvent = (EventWaitHandle)completionStatuses[i].State;
+                            manualResetEvent.Set();
+                        }
+                        else
+                        {
+                            exception = true;
+                        }
+                    }
+                }
+            });
+
+            AutoResetEvent clientEvent = new AutoResetEvent(false);
+            AutoResetEvent acceptedEvent = new AutoResetEvent(false);
+
+            AsyncSocket listener = AsyncSocket.CreateIPv4Tcp();
+            completionPort.AssociateSocket(listener, acceptedEvent);            
+            listener.Bind(IPAddress.Any, 5553);
+            listener.Listen(1);
+            
+            AsyncSocket serverSocket = AsyncSocket.CreateIPv4Tcp();
+            listener.Accept(serverSocket);
+
+            AsyncSocket clientSocket = AsyncSocket.CreateIPv4Tcp();
+            completionPort.AssociateSocket(clientSocket, clientEvent);
+            clientSocket.Bind(IPAddress.Any,0);
+            clientSocket.Connect("localhost", 5553);
+
+            clientEvent.WaitOne();
+            acceptedEvent.WaitOne();
+
+            AutoResetEvent serverEvent = new AutoResetEvent(false);
+            completionPort.AssociateSocket(serverSocket, serverEvent);
+
+            byte[] recv = new byte[1];
+            serverSocket.Receive(recv);
+
+            byte[] data = new[] {(byte)1};
+            
+            clientSocket.Send(data);
+            clientEvent.WaitOne(); // wait for data to be send
+
+            serverEvent.WaitOne(); // wait for data to be received
+
+            Assert.AreEqual(1, recv[0]);
+
+            completionPort.Signal(null);
+            task.Wait();
+
+            Assert.IsFalse(exception);
+
+            completionPort.Dispose();
+            listener.Dispose();
+            serverSocket.Dispose();
+            clientSocket.Dispose();
         }
     }
 }
