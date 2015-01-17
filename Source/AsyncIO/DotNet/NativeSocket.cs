@@ -36,11 +36,11 @@ namespace AsyncIO.DotNet
 
         public override IPEndPoint RemoteEndPoint
         {
-            get { return (IPEndPoint) m_socket.RemoteEndPoint; }
+            get { return (IPEndPoint)m_socket.RemoteEndPoint; }
         }
 
         private void OnAsyncCompleted(object sender, SocketAsyncEventArgs e)
-        {            
+        {
             OperationType operationType;
 
             switch (e.LastOperation)
@@ -64,14 +64,10 @@ namespace AsyncIO.DotNet
                     throw new ArgumentOutOfRangeException();
             }
 
-            //// operation aborted are not sent to the client
-            //if (e.SocketError != SocketError.OperationAborted)
-            //{
-                CompletionStatus completionStatus = new CompletionStatus(m_state, operationType, e.SocketError,
-                    e.BytesTransferred);
+            CompletionStatus completionStatus = new CompletionStatus(this, m_state, operationType, e.SocketError,
+                e.BytesTransferred);
 
-                m_completionPort.Queue(ref completionStatus);    
-            //}            
+            m_completionPort.Queue(ref completionStatus);
         }
 
         internal void SetCompletionPort(CompletionPort completionPort, object state)
@@ -142,7 +138,7 @@ namespace AsyncIO.DotNet
 
             if (!m_socket.ConnectAsync(m_outSocketAsyncEventArgs))
             {
-                CompletionStatus completionStatus = new CompletionStatus(m_state, OperationType.Connect, SocketError.Success, 0);
+                CompletionStatus completionStatus = new CompletionStatus(this, m_state, OperationType.Connect, SocketError.Success, 0);
 
                 m_completionPort.Queue(ref completionStatus);
             }
@@ -156,14 +152,14 @@ namespace AsyncIO.DotNet
 
             if (!m_socket.AcceptAsync(m_inSocketAsyncEventArgs))
             {
-                CompletionStatus completionStatus = new CompletionStatus(m_state, OperationType.Accept, SocketError.Success, 0);
+                CompletionStatus completionStatus = new CompletionStatus(this, m_state, OperationType.Accept, SocketError.Success, 0);
 
                 m_completionPort.Queue(ref completionStatus);
             }
         }
 
         public override void Send(byte[] buffer, int offset, int count, SocketFlags flags)
-        {                        
+        {
             if (m_outSocketAsyncEventArgs.Buffer != buffer)
             {
                 m_outSocketAsyncEventArgs.SetBuffer(buffer, offset, count);
@@ -175,7 +171,7 @@ namespace AsyncIO.DotNet
 
             if (!m_socket.SendAsync(m_outSocketAsyncEventArgs))
             {
-                CompletionStatus completionStatus = new CompletionStatus(m_state, OperationType.Send, m_outSocketAsyncEventArgs.SocketError,
+                CompletionStatus completionStatus = new CompletionStatus(this, m_state, OperationType.Send, m_outSocketAsyncEventArgs.SocketError,
                     m_outSocketAsyncEventArgs.BytesTransferred);
 
                 m_completionPort.Queue(ref completionStatus);
@@ -197,13 +193,13 @@ namespace AsyncIO.DotNet
 
             if (!m_socket.ReceiveAsync(m_inSocketAsyncEventArgs))
             {
-                CompletionStatus completionStatus = new CompletionStatus(m_state, OperationType.Receive, m_inSocketAsyncEventArgs.SocketError,
+                CompletionStatus completionStatus = new CompletionStatus(this, m_state, OperationType.Receive, m_inSocketAsyncEventArgs.SocketError,
                     m_inSocketAsyncEventArgs.BytesTransferred);
 
                 m_completionPort.Queue(ref completionStatus);
             }
         }
 
-       
+
     }
 }

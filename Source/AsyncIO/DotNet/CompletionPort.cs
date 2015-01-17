@@ -61,7 +61,7 @@ namespace AsyncIO.DotNet
 
         public override void Signal(object state)
         {
-            m_queue.Add(new CompletionStatus(state, OperationType.Signal, SocketError.Success, 0));
+            m_queue.Add(new CompletionStatus(null, state, OperationType.Signal, SocketError.Success, 0));
         }
     }
 }

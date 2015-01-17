@@ -29,6 +29,16 @@ namespace AsyncIO
             return new NativeSocket(addressFamily, socketType, protocolType);
         }
 
+        public static AsyncSocket CreateIPv4Tcp()
+        {
+            return Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        }
+
+        public static AsyncSocket CreateIPv6Tcp()
+        {
+            return Create(AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
+        }
+
         public AddressFamily AddressFamily { get; private set; }
 
         public SocketType SocketType { get; private set; }

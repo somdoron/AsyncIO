@@ -30,6 +30,8 @@ namespace AsyncIO.Windows
 
         private IPEndPoint m_localEndPoint;
 
+        private Socket m_acceptSocket;
+
         public Socket(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
             : base(addressFamily, socketType, protocolType)
         {
@@ -122,7 +124,20 @@ namespace AsyncIO.Windows
 
         public override IPEndPoint RemoteEndPoint
         {
-            get { throw new NotImplementedException(); }
+            get
+            {
+                SocketAddress socketAddress = new SocketAddress(AddressFamily, AddressFamily == AddressFamily.InterNetwork ? 16 : 28);
+                int size = socketAddress.Size;
+
+                if (UnsafeMethods.getpeername(Handle, socketAddress.Buffer, ref size) != SocketError.Success)
+                {
+                    throw new SocketException();
+                }
+                else
+                {
+                    return socketAddress.GetEndPoint();
+                }
+            }
         }
 
         public override IPEndPoint LocalEndPoint
@@ -442,6 +457,11 @@ namespace AsyncIO.Windows
             }
         }
 
+        internal void UpdateConnect()
+        {
+            SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.UpdateConnectContext, null);
+        }
+
         public override void Accept(AsyncSocket socket)
         {
             if (m_acceptSocketBufferAddress == IntPtr.Zero)
@@ -453,11 +473,11 @@ namespace AsyncIO.Windows
 
             int bytesReceived;
 
-            var windowsSocket = socket as Windows.Socket;
+            m_acceptSocket = socket as Windows.Socket;
 
             m_inOverlapped.StartOperation(OperationType.Accept);
 
-            if (!m_acceptEx(Handle, windowsSocket.Handle, m_acceptSocketBufferAddress, 0,
+            if (!m_acceptEx(Handle, m_acceptSocket.Handle, m_acceptSocketBufferAddress, 0,
                   m_acceptSocketBufferSize / 2,
                   m_acceptSocketBufferSize / 2, out bytesReceived, m_inOverlapped.Address))
             {
@@ -472,6 +492,23 @@ namespace AsyncIO.Windows
             {                
                 CompletionPort.PostCompletionStatus(m_inOverlapped.Address);
             }
+        }
+
+        internal void UpdateAccept()
+        {
+            Byte[] address;
+
+            if (IntPtr.Size == 4)
+            {
+                address = BitConverter.GetBytes(Handle.ToInt32());
+            }
+            else
+            {
+                address = BitConverter.GetBytes(Handle.ToInt64());
+            }
+
+            m_acceptSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.UpdateAcceptContext, address);
+            m_acceptSocket = null;
         }
 
         public override void Send(byte[] buffer, int offset, int count, SocketFlags flags)
@@ -543,5 +580,7 @@ namespace AsyncIO.Windows
                 }
             }          
         }
+
+       
     }
 }
