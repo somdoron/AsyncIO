@@ -126,15 +126,15 @@ namespace AsyncIO.Windows
         {
             get
             {
-                SocketAddress socketAddress = new SocketAddress(AddressFamily, AddressFamily == AddressFamily.InterNetwork ? 16 : 28);
-                int size = socketAddress.Size;
+                using ( var socketAddress = new SocketAddress( AddressFamily, AddressFamily == AddressFamily.InterNetwork ? 16 : 28))
+                {
+                    int size = socketAddress.Size;
 
-                if (UnsafeMethods.getpeername(Handle, socketAddress.Buffer, ref size) != SocketError.Success)
-                {
-                    throw new SocketException();
-                }
-                else
-                {
+                    if (UnsafeMethods.getpeername(Handle, socketAddress.Buffer, ref size) != SocketError.Success)
+                    {
+                        throw new SocketException();
+                    }
+                    
                     return socketAddress.GetEndPoint();
                 }
             }
@@ -144,15 +144,15 @@ namespace AsyncIO.Windows
         {
             get
             {
-                SocketAddress socketAddress = new SocketAddress(AddressFamily, AddressFamily == AddressFamily.InterNetwork ? 16 : 28);
-                int size = socketAddress.Size;
+                using (var  socketAddress = new SocketAddress(AddressFamily, AddressFamily == AddressFamily.InterNetwork ? 16 : 28))
+                { 
+                    int size = socketAddress.Size;
 
-                if (UnsafeMethods.getsockname(Handle, socketAddress.Buffer, ref size) != SocketError.Success)
-                {
-                    throw new SocketException();
-                }
-                else
-                {
+                    if (UnsafeMethods.getsockname(Handle, socketAddress.Buffer, ref size) != SocketError.Success)
+                    {
+                        throw new SocketException();
+                    }
+                    
                     return socketAddress.GetEndPoint();
                 }
             }
