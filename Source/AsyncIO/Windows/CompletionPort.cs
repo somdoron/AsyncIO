@@ -170,17 +170,25 @@ namespace AsyncIO.Windows
                     // if the overlapped ntstatus is zero we assume success and don't call get overlapped result for optimization
                     if (overlapped.Success)
                     {
-                        if (overlapped.OperationType == OperationType.Accept)
+                        SocketError socketError = SocketError.Success;
+                        try
                         {
-                            overlapped.AsyncSocket.UpdateAccept();
+                            if (overlapped.OperationType == OperationType.Accept)
+                            {
+                                overlapped.AsyncSocket.UpdateAccept();
+                            }
+                            else if (overlapped.OperationType == OperationType.Connect)
+                            {
+                                overlapped.AsyncSocket.UpdateConnect();
+                            }
                         }
-                        else if (overlapped.OperationType == OperationType.Connect)
+                        catch (SocketException)
                         {
-                            overlapped.AsyncSocket.UpdateConnect();
+                            socketError = (SocketError)Marshal.GetLastWin32Error();
                         }
 
                         completionStatus = new CompletionStatus(overlapped.AsyncSocket, overlapped.State,
-                            overlapped.OperationType, SocketError.Success,
+                            overlapped.OperationType, socketError,
                             bytesTransferred);
                     }
                     else
