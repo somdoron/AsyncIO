@@ -117,7 +117,7 @@ namespace AsyncIO.Windows
           [In] IntPtr overlapped,
           [In] IntPtr completionRoutine);
 
-        [DllImport("Ws2_32.dll")]
+        [DllImport("Ws2_32.dll", SetLastError = true)]
         public static extern int WSAIoctl(
             /* Socket, Mode */
             IntPtr s, int dwIoControlCode,
@@ -133,10 +133,10 @@ namespace AsyncIO.Windows
         [DllImport("ws2_32.dll", EntryPoint = "WSAIoctl", SetLastError = true)]
         public static extern SocketError WSAIoctl_Blocking([In] IntPtr socketHandle, [In] int ioControlCode, [In] byte[] inBuffer, [In] int inBufferSize, [Out] byte[] outBuffer, [In] int outBufferSize, out int bytesTransferred, [In] IntPtr overlapped, [In] IntPtr completionRoutine);
 
-        [DllImport("Ws2_32.dll")]
+        [DllImport("Ws2_32.dll", SetLastError = true)]
         public static extern int bind(IntPtr s, byte[] socketAddress, int addrsize);
 
-        [DllImport("Ws2_32.dll")]
+        [DllImport("Ws2_32.dll", SetLastError = true)]
         public static extern int listen(IntPtr s, int backlog);
 
         [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -196,7 +196,7 @@ namespace AsyncIO.Windows
                                                  [Out] out SocketFlags socketFlags
                                                  );
 
-        [DllImport("kernel32.dll")]
+        [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool CancelIoEx(IntPtr hFile, IntPtr overlapped);
     }
 }
