@@ -182,9 +182,9 @@ namespace AsyncIO.Windows
                                 overlapped.AsyncSocket.UpdateConnect();
                             }
                         }
-                        catch (SocketException)
+                        catch (SocketException ex)
                         {
-                            socketError = (SocketError)Marshal.GetLastWin32Error();
+                            socketError = ex.SocketErrorCode;
                         }
 
                         completionStatus = new CompletionStatus(overlapped.AsyncSocket, overlapped.State,
