@@ -11,8 +11,6 @@ namespace System.Collections.Concurrent
     {
         private Queue<T> m_queue;
 
-        private AutoResetEvent m_newItemEvent = new AutoResetEvent(false);
-
         public BlockingCollection()
         {
             m_queue = new Queue<T>();
@@ -25,47 +23,43 @@ namespace System.Collections.Concurrent
                 m_queue.Enqueue(item);
                 if (m_queue.Count == 1)
                 {
-                    m_newItemEvent.Set();
+                    Monitor.PulseAll(m_queue);
                 }
             }
-        }        
+        }
 
         public bool TryTake(out T item, int timeout)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            while (true)
+            int timeoutLeft = timeout == -1 ? -1 :
+                    (stopwatch.ElapsedMilliseconds > timeout ? 0 : timeout - (int)stopwatch.ElapsedMilliseconds);
+
+            if (Monitor.TryEnter(m_queue, timeoutLeft))
             {
-                int timeoutLeft = timeout == -1 ? -1 : 
-                        (stopwatch.ElapsedMilliseconds > timeout ? 0 : timeout - (int) stopwatch.ElapsedMilliseconds);                                        
-
-                if (Monitor.TryEnter(m_queue, timeoutLeft))
+                while (m_queue.Count == 0)
                 {
-                    if (m_queue.Count > 0)
-                    {
-                        item = m_queue.Dequeue();
-                        Monitor.Exit(m_queue);
-                        return true;
-                    }
-                    else
-                    {
-                        Monitor.Exit(m_queue);
+                    timeoutLeft = timeout == -1 ? -1 :
+                     (stopwatch.ElapsedMilliseconds > timeout ? 0 : timeout - (int)stopwatch.ElapsedMilliseconds);
 
-                        timeoutLeft = timeout == -1 ? -1 :
-                            (stopwatch.ElapsedMilliseconds > timeout ? 0 : timeout - (int)stopwatch.ElapsedMilliseconds);  
-
-                        if (!m_newItemEvent.WaitOne(timeoutLeft))
-                        {
-                            item = default(T);
-                            return false;
-                        }
+                    if (timeoutLeft == 0)
+                    {
+                        item = default(T);
+                        Monitor.Exit(m_queue);
+                        return false;
                     }
+
+                    Monitor.Wait(m_queue, timeoutLeft);
                 }
-                else
-                {
-                    item = default(T);
-                    return false;
-                }
+
+                item = m_queue.Dequeue();
+                Monitor.Exit(m_queue);
+                return true;
+            }
+            else
+            {
+                item = default(T);
+                return false;
             }
         }
     }
