@@ -30,37 +30,28 @@ namespace System.Collections.Concurrent
 
         public bool TryTake(out T item, int timeout)
         {
-            Stopwatch stopwatch = Stopwatch.StartNew();
+            Stopwatch stopwatch = Stopwatch.StartNew();            
 
-            int timeoutLeft = timeout == -1 ? -1 :
-                    (stopwatch.ElapsedMilliseconds > timeout ? 0 : timeout - (int)stopwatch.ElapsedMilliseconds);
-
-            if (Monitor.TryEnter(m_queue, timeoutLeft))
+            lock (m_queue)
             {
                 while (m_queue.Count == 0)
                 {
-                    timeoutLeft = timeout == -1 ? -1 :
-                     (stopwatch.ElapsedMilliseconds > timeout ? 0 : timeout - (int)stopwatch.ElapsedMilliseconds);
+                    long elapsed = stopwatch.ElapsedMilliseconds;
+                    int timeoutLeft = timeout == -1 ? -1 :
+                     (elapsed > timeout ? 0 : timeout - (int)elapsed);
 
                     if (timeoutLeft == 0)
                     {
-                        item = default(T);
-                        Monitor.Exit(m_queue);
+                        item = default(T);                        
                         return false;
                     }
 
                     Monitor.Wait(m_queue, timeoutLeft);
                 }
 
-                item = m_queue.Dequeue();
-                Monitor.Exit(m_queue);
+                item = m_queue.Dequeue();                
                 return true;
-            }
-            else
-            {
-                item = default(T);
-                return false;
-            }
+            }         
         }
     }
 }
