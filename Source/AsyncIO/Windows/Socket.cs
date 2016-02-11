@@ -409,8 +409,7 @@ namespace AsyncIO.Windows
             // and SOCKET_ERROR otherwise
             if (0 != UnsafeMethods.bind(Handle, m_boundAddress.Buffer, m_boundAddress.Size))
             {
-                int sockerError = UnsafeMethods.WSAGetLastError();
-                throw new SocketException(sockerError);
+                throw new SocketException();
             }
         }
 
@@ -420,8 +419,7 @@ namespace AsyncIO.Windows
             // and SOCKET_ERROR otherwise
             if (0 != UnsafeMethods.listen(Handle, backlog))
             {
-                int sockerError = UnsafeMethods.WSAGetLastError();
-                throw new SocketException(sockerError);
+                throw new SocketException();
             }
         }
 
