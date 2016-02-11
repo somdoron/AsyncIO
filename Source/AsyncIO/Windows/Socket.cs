@@ -71,7 +71,11 @@ namespace AsyncIO.Windows
                 m_inOverlapped.Dispose();
                 m_outOverlapped.Dispose();
 
-                UnsafeMethods.CancelIoEx(Handle, IntPtr.Zero);
+                // for Windows XP
+                if (Environment.OSVersion.Version.Major == 5)
+                    UnsafeMethods.CancelIo(Handle);
+                else
+                    UnsafeMethods.CancelIoEx(Handle, IntPtr.Zero);
 
                 int error = UnsafeMethods.closesocket(Handle);
 
@@ -401,21 +405,23 @@ namespace AsyncIO.Windows
 
             m_boundAddress = new SocketAddress(localEndPoint.Address, localEndPoint.Port);
 
-            SocketError bindResult = (SocketError)UnsafeMethods.bind(Handle, m_boundAddress.Buffer, m_boundAddress.Size);
-
-            if (bindResult != SocketError.Success)
+            // Accoring MSDN bind returns 0 if succeeded
+            // and SOCKET_ERROR otherwise
+            if (0 != UnsafeMethods.bind(Handle, m_boundAddress.Buffer, m_boundAddress.Size))
             {
-                throw new SocketException((int)bindResult);
+                int sockerError = UnsafeMethods.WSAGetLastError();
+                throw new SocketException(sockerError);
             }
         }
 
         public override void Listen(int backlog)
         {
-            SocketError bindResult = (SocketError)UnsafeMethods.listen(Handle, backlog);
-
-            if (bindResult != SocketError.Success)
+            // Accoring MSDN listen returns 0 if succeeded
+            // and SOCKET_ERROR otherwise
+            if (0 != UnsafeMethods.listen(Handle, backlog))
             {
-                throw new SocketException();
+                int sockerError = UnsafeMethods.WSAGetLastError();
+                throw new SocketException(sockerError);
             }
         }
 

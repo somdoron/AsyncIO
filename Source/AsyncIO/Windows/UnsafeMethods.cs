@@ -198,5 +198,11 @@ namespace AsyncIO.Windows
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool CancelIoEx(IntPtr hFile, IntPtr overlapped);
+
+        [DllImport("ws2_32.dll", SetLastError = false)]
+        internal static extern int WSAGetLastError();
+
+        [DllImport("kernel32.dll")]
+        public static extern bool CancelIo(IntPtr hFile);
     }
 }
