@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Odbc;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -110,8 +109,7 @@ namespace AsyncIO.DotNet
         {
             return m_socket.GetSocketOption(optionLevel, optionName, optionLength);
         }
-
-
+    
         public override int IOControl(IOControlCode ioControlCode, byte[] optionInValue, byte[] optionOutValue)
         {
             return m_socket.IOControl(ioControlCode, optionInValue, optionOutValue);
@@ -120,6 +118,8 @@ namespace AsyncIO.DotNet
         public override void Dispose()
         {
             (m_socket as IDisposable).Dispose();
+            m_inSocketAsyncEventArgs.Dispose();
+            m_outSocketAsyncEventArgs.Dispose();
         }
 
         public override void Bind(System.Net.IPEndPoint localEndPoint)
