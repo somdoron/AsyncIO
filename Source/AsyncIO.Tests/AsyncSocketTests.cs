@@ -59,7 +59,7 @@ namespace AsyncIO.Tests
 
         [Test]
         public void RemoteEndPoint()
-        {
+        {            
             CompletionPort completionPort = CompletionPort.Create();
 
             var listenSocket = AsyncSocket.CreateIPv4Tcp();
@@ -74,7 +74,7 @@ namespace AsyncIO.Tests
             var clientSocket = AsyncSocket.CreateIPv4Tcp();
             completionPort.AssociateSocket(clientSocket, null);
             clientSocket.Bind(IPAddress.Any, 0);
-            clientSocket.Connect("localhost", 5553);
+            clientSocket.Connect("localhost", 5553);            
 
             CompletionStatus completionStatus;
 

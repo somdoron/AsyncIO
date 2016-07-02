@@ -26,9 +26,7 @@ namespace AsyncIO.Windows
         private PinnedBuffer m_receivePinnedBuffer;
 
         private WSABuffer m_sendWSABuffer;
-        private WSABuffer m_receiveWSABuffer;
-
-        private IPEndPoint m_localEndPoint;
+        private WSABuffer m_receiveWSABuffer;        
 
         private Socket m_acceptSocket;
 
@@ -72,10 +70,14 @@ namespace AsyncIO.Windows
                 m_outOverlapped.Dispose();
 
                 // for Windows XP
+#if NETSTANDARD1_6
+                UnsafeMethods.CancelIoEx(Handle, IntPtr.Zero);
+#else
                 if (Environment.OSVersion.Version.Major == 5)
                     UnsafeMethods.CancelIo(Handle);
                 else
                     UnsafeMethods.CancelIoEx(Handle, IntPtr.Zero);
+#endif
 
                 int error = UnsafeMethods.closesocket(Handle);
 
@@ -176,13 +178,17 @@ namespace AsyncIO.Windows
         private void InitDynamicMethods()
         {
             m_connectEx =
-              (ConnectExDelegate)LoadDynamicMethod(UnsafeMethods.WSAID_CONNECTEX, typeof(ConnectExDelegate));
+              (ConnectExDelegate)LoadDynamicMethod<ConnectExDelegate>(UnsafeMethods.WSAID_CONNECTEX);
 
             m_acceptEx =
-              (AcceptExDelegate)LoadDynamicMethod(UnsafeMethods.WSAID_ACCEPT_EX, typeof(AcceptExDelegate));
+              (AcceptExDelegate)LoadDynamicMethod<AcceptExDelegate>(UnsafeMethods.WSAID_ACCEPT_EX);
         }
 
-        private Delegate LoadDynamicMethod(Guid guid, Type type)
+#if NETSTANDARD1_6
+        private T LoadDynamicMethod<T>(Guid guid)
+#else
+        private Delegate LoadDynamicMethod<T>(Guid guid)
+#endif
         {
             IntPtr connectExAddress = IntPtr.Zero;
             int byteTransfered = 0;
@@ -195,7 +201,11 @@ namespace AsyncIO.Windows
                 throw new SocketException();
             }
 
-            return Marshal.GetDelegateForFunctionPointer(connectExAddress, type);
+#if NETSTANDARD1_6
+            return Marshal.GetDelegateForFunctionPointer<T>(connectExAddress);
+#else
+            return Marshal.GetDelegateForFunctionPointer(connectExAddress, typeof(T));
+#endif
         }
 
         internal void SetCompletionPort(CompletionPort completionPort, object state)
@@ -278,13 +288,19 @@ namespace AsyncIO.Windows
             }
         }
 
+        private int GetIP4Address(IPAddress ipAddress)
+        {
+            var bytes = ipAddress.GetAddressBytes();
+            return bytes[0] | bytes[1] << 8 | bytes[2] << 16 | bytes[3] << 24;            
+        }
+
         private void SetMulticastOption(SocketOptionName optionName, MulticastOption mr)
         {
             IPMulticastRequest mreq = new IPMulticastRequest();
-            mreq.MulticastAddress = (int)mr.Group.Address;
+            mreq.MulticastAddress = GetIP4Address(mr.Group);
             if (mr.LocalAddress != null)
             {
-                mreq.InterfaceAddress = (int)mr.LocalAddress.Address;
+                mreq.InterfaceAddress = GetIP4Address(mr.LocalAddress);
             }
             else
             {

@@ -87,6 +87,12 @@ namespace AsyncIO.Windows
         {
             // Windows XP Has NO GetQueuedCompletionStatusEx
             // so we need dequeue IOPC one by one
+#if NETSTANDARD1_6
+            if (false)
+            {
+                
+            }
+#else
             if (Environment.OSVersion.Version.Major == 5)
             {
                 removed = 0;
@@ -99,6 +105,7 @@ namespace AsyncIO.Windows
                 }
                 return result;
             }
+#endif
             else
             {
                 if (m_overlappedEntries == null || m_overlappedEntries.Length < completionStatuses.Length)

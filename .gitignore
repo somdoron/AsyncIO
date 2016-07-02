@@ -29,3 +29,6 @@ obj/
 [Rr]elease*/
 _ReSharper*/
 [Tt]est[Rr]esult*
+project.lock.json
+.vs
+/Source/packages

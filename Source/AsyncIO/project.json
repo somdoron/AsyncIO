@@ -1,0 +1,19 @@
+{
+  "version": "0.1.19.0",
+  "buildOptions": {
+    "debugType": "portable"    
+  },
+  "dependencies": {
+  },
+  "frameworks": {
+    "netstandard1.6": {
+      "dependencies": {
+        "NETStandard.Library": "1.6.0",
+        "System.Net.NameResolution": "4.0.0"
+      }
+    },
+    "net35": {},
+    "net40": {}
+  },
+  "supports": {}
+}

@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if NET35
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -55,3 +57,4 @@ namespace System.Collections.Concurrent
         }
     }
 }
+#endif
