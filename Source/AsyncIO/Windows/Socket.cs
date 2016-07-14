@@ -70,7 +70,7 @@ namespace AsyncIO.Windows
                 m_outOverlapped.Dispose();
 
                 // for Windows XP
-#if NETSTANDARD1_6
+#if NETSTANDARD1_3
                 UnsafeMethods.CancelIoEx(Handle, IntPtr.Zero);
 #else
                 if (Environment.OSVersion.Version.Major == 5)

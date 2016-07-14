@@ -27,7 +27,7 @@ namespace AsyncIO
 
         public static AsyncSocket Create(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
         {
-#if NETSTANDARD1_6
+#if NETSTANDARD1_3
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))                
 #else
             if (Environment.OSVersion.Platform != PlatformID.Win32NT || ForceDotNet.Forced)
