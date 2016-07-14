@@ -87,7 +87,7 @@ namespace AsyncIO.Windows
         {
             // Windows XP Has NO GetQueuedCompletionStatusEx
             // so we need dequeue IOPC one by one
-#if NETSTANDARD1_6
+#if NETSTANDARD1_3
             if (false)
             {
                 
