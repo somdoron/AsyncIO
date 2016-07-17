@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using AsyncIO.DotNet;
 
@@ -28,7 +27,7 @@ namespace AsyncIO
         public static AsyncSocket Create(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
         {
 #if NETSTANDARD1_3
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))                
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))                
 #else
             if (Environment.OSVersion.Platform != PlatformID.Win32NT || ForceDotNet.Forced)
 #endif

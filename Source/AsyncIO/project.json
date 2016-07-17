@@ -1,5 +1,5 @@
 {
-  "version": "0.1.20.0",
+  "version": "0.1.23.0",
   "buildOptions": {
     "debugType": "portable",
     "keyFile": "./asyncio.snk"
@@ -14,7 +14,21 @@
       }
     },
     "net35": {},
-    "net40": {}
+    "net40": {},
+    "MonoAndroid,Version=v6.0": {
+      "frameworkAssemblies": {
+        "mscorlib": {},
+        "System": {},
+        "System.Core": {}
+      }
+    },
+    "Xamarin.iOS,Version=v1.0": {
+      "frameworkAssemblies": {
+        "mscorlib": {},
+        "System": {},
+        "System.Core": {}
+      }
+    }
   },
   "supports": {}
 }

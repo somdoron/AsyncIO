@@ -12,7 +12,7 @@ namespace AsyncIO
         public static CompletionPort Create()
         {
 #if NETSTANDARD1_3
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 #else
             if (Environment.OSVersion.Platform != PlatformID.Win32NT || ForceDotNet.Forced)
 #endif
