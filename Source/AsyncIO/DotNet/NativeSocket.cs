@@ -164,6 +164,8 @@ namespace AsyncIO.DotNet
 
         public override void Accept()
         {
+            m_inSocketAsyncEventArgs.AcceptSocket = null;
+
             if (!m_socket.AcceptAsync(m_inSocketAsyncEventArgs))
             {
                 if (m_inSocketAsyncEventArgs.SocketError == SocketError.Success)
@@ -177,6 +179,7 @@ namespace AsyncIO.DotNet
 
         public override AsyncSocket GetAcceptedSocket()
         {
+            m_inSocketAsyncEventArgs.AcceptSocket = null;
             var temp = m_acceptedSocket;
             m_acceptedSocket = null;
             return temp;
