@@ -58,7 +58,8 @@ namespace AsyncIO.DotNet
             {
                 case SocketAsyncOperation.Accept:
                     operationType = OperationType.Accept;
-                    m_acceptedSocket = new NativeSocket(e.AcceptSocket);
+                    if (e.SocketError == SocketError.Success)
+                        m_acceptedSocket = new NativeSocket(e.AcceptSocket);
                     break;
                 case SocketAsyncOperation.Connect:
                     operationType = OperationType.Connect;
