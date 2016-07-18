@@ -482,7 +482,24 @@ namespace AsyncIO.Windows
             SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.UpdateConnectContext, null);
         }
 
+        public override AsyncSocket GetAcceptedSocket()
+        {
+            var temp = m_acceptSocket;
+            m_acceptSocket = null;
+            return temp;            
+        }
+
+        public override void Accept()
+        {
+            AcceptInternal(new Socket(this.AddressFamily, this.SocketType, this.ProtocolType));
+        }
+
         public override void Accept(AsyncSocket socket)
+        {
+            AcceptInternal(socket);
+        }
+
+        public void AcceptInternal(AsyncSocket socket)
         {
             if (m_acceptSocketBufferAddress == IntPtr.Zero)
             {
@@ -527,8 +544,7 @@ namespace AsyncIO.Windows
                 address = BitConverter.GetBytes(Handle.ToInt64());
             }
 
-            m_acceptSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.UpdateAcceptContext, address);
-            m_acceptSocket = null;
+            m_acceptSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.UpdateAcceptContext, address);            
         }
 
         public override void Send(byte[] buffer, int offset, int count, SocketFlags flags)

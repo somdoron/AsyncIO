@@ -230,7 +230,12 @@ namespace AsyncIO
 
         public abstract void Connect(IPEndPoint endPoint);
 
+        [Obsolete("Use Accept without parameter and GetAcceptedSocket")]
         public abstract void Accept(AsyncSocket socket);
+
+        public abstract void Accept();
+
+        public abstract AsyncSocket GetAcceptedSocket();
 
         public abstract void Send(byte[] buffer, int offset, int count, SocketFlags flags);
 

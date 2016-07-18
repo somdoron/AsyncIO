@@ -15,11 +15,23 @@ namespace AsyncIO.DotNet
 
         private SocketAsyncEventArgs m_inSocketAsyncEventArgs;
         private SocketAsyncEventArgs m_outSocketAsyncEventArgs;
+        private NativeSocket m_acceptedSocket;
 
         public NativeSocket(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
             : base(addressFamily, socketType, protocolType)
         {
             m_socket = new Socket(addressFamily, socketType, protocolType);
+
+            m_inSocketAsyncEventArgs = new SocketAsyncEventArgs();
+            m_inSocketAsyncEventArgs.Completed += OnAsyncCompleted;
+
+            m_outSocketAsyncEventArgs = new SocketAsyncEventArgs();
+            m_outSocketAsyncEventArgs.Completed += OnAsyncCompleted;
+        }
+
+        private NativeSocket(Socket socket) : base(socket.AddressFamily, socket.SocketType, socket.ProtocolType)
+        {
+            m_socket = socket;
 
             m_inSocketAsyncEventArgs = new SocketAsyncEventArgs();
             m_inSocketAsyncEventArgs.Completed += OnAsyncCompleted;
@@ -46,6 +58,7 @@ namespace AsyncIO.DotNet
             {
                 case SocketAsyncOperation.Accept:
                     operationType = OperationType.Accept;
+                    m_acceptedSocket = new NativeSocket(e.AcceptSocket);
                     break;
                 case SocketAsyncOperation.Connect:
                     operationType = OperationType.Connect;
@@ -144,6 +157,27 @@ namespace AsyncIO.DotNet
             }
         }
 
+        public override void Accept()
+        {
+            if (!m_socket.AcceptAsync(m_inSocketAsyncEventArgs))
+            {
+                if (m_inSocketAsyncEventArgs.SocketError == SocketError.Success)
+                    m_acceptedSocket = new NativeSocket(m_inSocketAsyncEventArgs.AcceptSocket);
+
+                CompletionStatus completionStatus = new CompletionStatus(this, m_state, OperationType.Accept, SocketError.Success, 0);
+                
+                m_completionPort.Queue(ref completionStatus);
+            }
+        }
+
+        public override AsyncSocket GetAcceptedSocket()
+        {
+            var temp = m_acceptedSocket;
+            m_acceptedSocket = null;
+            return temp;
+        }
+
+        [Obsolete("Use Accept without parameter and GetAcceptedSocket")]
         public override void Accept(AsyncSocket socket)
         {
             NativeSocket nativeSocket = (NativeSocket)socket;
