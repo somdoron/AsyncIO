@@ -64,7 +64,8 @@ namespace AsyncIO.Tests
 
             var listenSocket = AsyncSocket.CreateIPv4Tcp();
             completionPort.AssociateSocket(listenSocket, null);
-            listenSocket.Bind(IPAddress.Any, 56799);
+            listenSocket.Bind(IPAddress.Any, 0);
+            int port = listenSocket.LocalEndPoint.Port;
             listenSocket.Listen(1);
             
             listenSocket.Accept();
@@ -72,7 +73,7 @@ namespace AsyncIO.Tests
             var clientSocket = AsyncSocket.CreateIPv4Tcp();
             completionPort.AssociateSocket(clientSocket, null);
             clientSocket.Bind(IPAddress.Any, 0);
-            clientSocket.Connect("localhost", 56799);            
+            clientSocket.Connect("localhost", port);            
 
             CompletionStatus completionStatus;
 
@@ -154,8 +155,9 @@ namespace AsyncIO.Tests
             AutoResetEvent acceptedEvent = new AutoResetEvent(false);
 
             AsyncSocket listener = AsyncSocket.CreateIPv4Tcp();
-            completionPort.AssociateSocket(listener, acceptedEvent);            
-            listener.Bind(IPAddress.Any, 56799);
+            completionPort.AssociateSocket(listener, acceptedEvent);
+            listener.Bind(IPAddress.Any, 0);
+            int port = listener.LocalEndPoint.Port;
             listener.Listen(1);
                         
             listener.Accept();
@@ -163,7 +165,7 @@ namespace AsyncIO.Tests
             AsyncSocket clientSocket = AsyncSocket.CreateIPv4Tcp();
             completionPort.AssociateSocket(clientSocket, clientEvent);
             clientSocket.Bind(IPAddress.Any,0);
-            clientSocket.Connect("localhost", 56799);
+            clientSocket.Connect("localhost", port);
 
             clientEvent.WaitOne();
             acceptedEvent.WaitOne();
