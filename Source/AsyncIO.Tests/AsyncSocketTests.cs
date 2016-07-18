@@ -35,7 +35,7 @@ namespace AsyncIO.Tests
             }
         }
 
-        [Test]
+        [Test, Explicit]
         public void KeepAlive()
         {
             var socket = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -64,7 +64,7 @@ namespace AsyncIO.Tests
 
             var listenSocket = AsyncSocket.CreateIPv4Tcp();
             completionPort.AssociateSocket(listenSocket, null);
-            listenSocket.Bind(IPAddress.Any, 5553);
+            listenSocket.Bind(IPAddress.Any, 56799);
             listenSocket.Listen(1);
             
             listenSocket.Accept();
@@ -72,7 +72,7 @@ namespace AsyncIO.Tests
             var clientSocket = AsyncSocket.CreateIPv4Tcp();
             completionPort.AssociateSocket(clientSocket, null);
             clientSocket.Bind(IPAddress.Any, 0);
-            clientSocket.Connect("localhost", 5553);            
+            clientSocket.Connect("localhost", 56799);            
 
             CompletionStatus completionStatus;
 
@@ -155,7 +155,7 @@ namespace AsyncIO.Tests
 
             AsyncSocket listener = AsyncSocket.CreateIPv4Tcp();
             completionPort.AssociateSocket(listener, acceptedEvent);            
-            listener.Bind(IPAddress.Any, 5553);
+            listener.Bind(IPAddress.Any, 56799);
             listener.Listen(1);
                         
             listener.Accept();
@@ -163,7 +163,7 @@ namespace AsyncIO.Tests
             AsyncSocket clientSocket = AsyncSocket.CreateIPv4Tcp();
             completionPort.AssociateSocket(clientSocket, clientEvent);
             clientSocket.Bind(IPAddress.Any,0);
-            clientSocket.Connect("localhost", 5553);
+            clientSocket.Connect("localhost", 56799);
 
             clientEvent.WaitOne();
             acceptedEvent.WaitOne();
