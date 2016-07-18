@@ -114,7 +114,10 @@ namespace AsyncIO.Windows
                 if (m_acceptSocketBufferAddress != IntPtr.Zero)
                 {
                     Marshal.FreeHGlobal(m_acceptSocketBufferAddress);
-                }                
+                }
+
+                if (m_acceptSocket != null)  
+                    m_acceptSocket.Dispose();                    
             }
         }
 

@@ -133,6 +133,11 @@ namespace AsyncIO.DotNet
             (m_socket as IDisposable).Dispose();
             m_inSocketAsyncEventArgs.Dispose();
             m_outSocketAsyncEventArgs.Dispose();
+
+            if (m_acceptedSocket != null)
+            {
+                m_acceptedSocket.Dispose();
+            }
         }
 
         public override void Bind(System.Net.IPEndPoint localEndPoint)
