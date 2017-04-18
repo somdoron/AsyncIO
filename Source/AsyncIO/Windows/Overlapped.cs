@@ -72,6 +72,7 @@ namespace AsyncIO.Windows
         public void StartOperation(OperationType operationType)
         {
             InProgress = true;
+            Success = false;
             OperationType = operationType;
         }
 
