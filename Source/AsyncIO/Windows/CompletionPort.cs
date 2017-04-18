@@ -220,16 +220,22 @@ namespace AsyncIO.Windows
                     {
                         SocketError socketError = SocketError.Success;
                         SocketFlags socketFlags;
-
-                        bool operationSucceed = UnsafeMethods.WSAGetOverlappedResult(overlapped.AsyncSocket.Handle,
-                            overlappedAddress,
-                            out bytesTransferred, false, out socketFlags);
-
-                        if (!operationSucceed)
+                        if(overlapped.Disposed)
                         {
-                            socketError = (SocketError)Marshal.GetLastWin32Error();
+                            socketError = SocketError.OperationAborted;
                         }
+                        else
+                        {
+                            bool operationSucceed = UnsafeMethods.WSAGetOverlappedResult(overlapped.AsyncSocket.Handle,
+                                overlappedAddress,
+                                out bytesTransferred, false, out socketFlags);
 
+                            if (!operationSucceed)
+                            {
+                                socketError = (SocketError)Marshal.GetLastWin32Error();
+                            }
+
+                        }
                         completionStatus = new CompletionStatus(overlapped.AsyncSocket, overlapped.State,
                             overlapped.OperationType, socketError,
                             bytesTransferred);
