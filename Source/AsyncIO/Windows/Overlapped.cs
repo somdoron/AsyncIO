@@ -61,10 +61,7 @@ namespace AsyncIO.Windows
 
         public Windows.Socket AsyncSocket { get; private set; }
 
-        public bool Success
-        {
-            get { return Marshal.ReadIntPtr(m_address).Equals(IntPtr.Zero); }
-        }
+        public bool Success { get; private set; }
 
         public bool InProgress { get; private set; }
 
@@ -75,6 +72,7 @@ namespace AsyncIO.Windows
         public void StartOperation(OperationType operationType)
         {
             InProgress = true;
+            Success = false;
             OperationType = operationType;
         }
 
@@ -91,6 +89,11 @@ namespace AsyncIO.Windows
             if (overlapped.Disposed)
             {
                 overlapped.Free();
+                overlapped.Success = false;
+            }
+            else
+            {
+                overlapped.Success = Marshal.ReadIntPtr(overlapped.m_address).Equals(IntPtr.Zero);
             }
 
             return overlapped;          
