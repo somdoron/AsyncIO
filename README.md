@@ -87,8 +87,9 @@ static void Main(string[] args)
 
 To compile:
 
+* Download [Visual Studio 2017](https://docs.microsoft.com/en-us/visualstudio/install/install-visual-studio). Ensure it is updated to v15.5.2.
+* Ensure the component `.NET Core Runtime` is installed.
 * Download and install [.NET Core SDK v2.1.2](https://www.microsoft.com/net/download/windows).
-* Compile with [Visual Studio 2017 v15.5.2](https://docs.microsoft.com/en-us/visualstudio/install/install-visual-studio) or higher.
 
 On compile, the NuGet package will be created in the `\bin\Release` directory. 
 
