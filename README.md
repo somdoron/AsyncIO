@@ -83,3 +83,14 @@ static void Main(string[] args)
 }
 ```
 
+## Compiling
+
+To compile:
+
+* Download and install [.NET Core SDK v2.1.2](https://www.microsoft.com/net/download/windows).
+* Compile with [Visual Studio 2017 v15.5.2](https://docs.microsoft.com/en-us/visualstudio/install/install-visual-studio) or higher.
+
+On compile, the NuGet package will be created in the `\bin\Release` directory. 
+
+To test the compiled NuGet package, in Visual Studio 2017 options under `Visual Studio Package Manager`, you can add the `\bin\Release` directory with the NuGet package in it. This NuGet package will then be available to install in other projects.
+
