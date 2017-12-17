@@ -49,4 +49,4 @@ script:
   - dotnet restore Source/
 
   # testing only netcoreapp1.0 on linux and OSX
-  - dotnet test Source/AsyncIO.Tests -f netcoreapp1.0
+  - dotnet test Source/AsyncIO.Tests -f netcoreapp2.0
