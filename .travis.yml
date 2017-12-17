@@ -2,7 +2,6 @@ language: csharp
 
 # dotnet cli require Ubuntu 14.04
 sudo: required
-dotnet: 2.1.3
 dist: trusty
 
 # dotnet cli require OSX 10.10
@@ -17,7 +16,6 @@ addons:
     - libssl-dev
     - libunwind8
     - zlib1g
-    - dotnet-sharedframework-microsoft.netcore.app-1.1.5
 
 os:
 #  - osx
@@ -51,4 +49,4 @@ script:
   - dotnet restore Source/
 
   # testing only netcoreapp1.0 on linux and OSX
-  - dotnet test Source/AsyncIO.Tests -f netcoreapp2.0
+  - dotnet test Source/AsyncIO.Tests -f netcoreapp1.0
