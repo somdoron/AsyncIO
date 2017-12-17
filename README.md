@@ -83,15 +83,20 @@ static void Main(string[] args)
 }
 ```
 
-## Compiling
+## Compiling and Testing
 
-To compile:
+To compile from source:
 
 * Download [Visual Studio 2017](https://docs.microsoft.com/en-us/visualstudio/install/install-visual-studio). Ensure it is updated to v15.5.2.
-* Ensure the component `.NET Core Runtime` is installed.
+* Ensure the component `.NET Core Runtime` is installed. This installs .NET Core v1.x.
 * Download and install [.NET Core SDK v2.1.2](https://www.microsoft.com/net/download/windows).
 
 On compile, the NuGet package will be created in the `\bin\Release` directory. 
 
-To test the compiled NuGet package, in Visual Studio 2017 options under `Visual Studio Package Manager`, you can add the `\bin\Release` directory with the NuGet package in it. This NuGet package will then be available to install in other projects.
+If ReSharper is installed, the `NUnit` tests can be run.
+
+To test the compiled NuGet package:
+* In Visual Studio 2017 options under `Visual Studio Package Manager`, add the `\bin\Release` directory which contains the newly compiled NuGet package. 
+* This NuGet package will then be available to install in another project, for testing purposes. 
+* When adding the test NuGet package to another project, remember to select the custom respository on the top right hand side under `Package Source`.
 
