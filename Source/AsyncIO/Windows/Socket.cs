@@ -506,9 +506,9 @@ namespace AsyncIO.Windows
         {
             if (m_acceptSocketBufferAddress == IntPtr.Zero)
             {
-                m_acceptSocketBufferSize = (m_boundAddress.Size + 16) * 2;
+                m_acceptSocketBufferSize = m_boundAddress.Size + 16;
 
-                m_acceptSocketBufferAddress = Marshal.AllocHGlobal(m_acceptSocketBufferSize);
+                m_acceptSocketBufferAddress = Marshal.AllocHGlobal(m_acceptSocketBufferSize << 1);
             }
 
             int bytesReceived;
@@ -518,8 +518,8 @@ namespace AsyncIO.Windows
             m_inOverlapped.StartOperation(OperationType.Accept);
 
             if (!m_acceptEx(Handle, m_acceptSocket.Handle, m_acceptSocketBufferAddress, 0,
-                  m_acceptSocketBufferSize / 2,
-                  m_acceptSocketBufferSize / 2, out bytesReceived, m_inOverlapped.Address))
+                  m_acceptSocketBufferSize,
+                  m_acceptSocketBufferSize, out bytesReceived, m_inOverlapped.Address))
             {
                 var socketError = (SocketError)Marshal.GetLastWin32Error();
 
