@@ -34,8 +34,4 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="SourceLink.Create.CommandLine" Version="2.7.3" PrivateAssets="All" />
-  </ItemGroup>
-
 </Project>
