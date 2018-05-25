@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>0.1.27.0</Version>
-    <PackageVersion>0.1.27.0</PackageVersion>
+    <Version>0.1.42.0</Version>
     <TargetFrameworks>netstandard1.3;net40</TargetFrameworks>
     <DebugType>portable</DebugType>
     <AssemblyName>AsyncIO</AssemblyName>
@@ -19,6 +18,10 @@
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageProjectUrl>https://github.com/somdoron/AsyncIO</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/somdoron/AsyncIO</RepositoryUrl>
+    <RepositoryType>GitHub</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
