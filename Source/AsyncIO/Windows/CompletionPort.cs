@@ -85,8 +85,8 @@ namespace AsyncIO.Windows
 
         public override bool GetMultipleQueuedCompletionStatus(int timeout, CompletionStatus[] completionStatuses, out int removed)
         {
-            // Windows XP Has NO GetQueuedCompletionStatusEx
-            // so we need dequeue IOPC one by one
+            // Windows XP has NO GetQueuedCompletionStatusEx
+            // so we need dequeue IOCP one by one
 #if NETSTANDARD1_3
             if (false)
             {
