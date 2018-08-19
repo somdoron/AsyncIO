@@ -157,7 +157,19 @@ namespace AsyncIO.DotNet
 
             if (!m_socket.ConnectAsync(m_outSocketAsyncEventArgs))
             {
-                CompletionStatus completionStatus = new CompletionStatus(this, m_state, OperationType.Connect, SocketError.Success, 0);
+                CompletionStatus completionStatus = new CompletionStatus(this, m_state, OperationType.Connect, m_outSocketAsyncEventArgs.SocketError, 0);
+
+		// Mono have an issue, when connect operation fail the SocketAsyncEventArgs is kept in progress. We therefore dispose the exising one and creating a new one.
+                m_outSocketAsyncEventArgs.Completed -= OnAsyncCompleted;
+		try {
+		    m_outSocketAsyncEventArgs.Dispose();
+		}
+		catch (Exception ex) {
+		    			
+		}
+		
+		m_outSocketAsyncEventArgs = new SocketAsyncEventArgs();
+                m_outSocketAsyncEventArgs.Completed += OnAsyncCompleted;
 
                 m_completionPort.Queue(ref completionStatus);
             }
