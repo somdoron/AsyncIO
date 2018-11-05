@@ -35,6 +35,9 @@ namespace AsyncIO.Windows
             m_inOverlapped = new Overlapped(this);
             m_outOverlapped = new Overlapped(this);
 
+            m_sendWSABuffer = new WSABuffer();
+            m_receiveWSABuffer = new WSABuffer();
+
             InitSocket();
             InitDynamicMethods();
         }
