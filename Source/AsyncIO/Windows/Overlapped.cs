@@ -15,6 +15,7 @@ namespace AsyncIO.Windows
 
         private IntPtr m_address;
         private GCHandle m_handle;
+        private PinnedBuffer m_pinnedBuffer;
 
         public Overlapped(Windows.Socket asyncSocket)
         {
@@ -49,12 +50,23 @@ namespace AsyncIO.Windows
             if (m_handle.IsAllocated)
             {
                 m_handle.Free();
-            }        
+            }
+
+            if (m_pinnedBuffer != null)
+            {
+                m_pinnedBuffer.Dispose();
+                m_pinnedBuffer = null;
+            }
         }
 
         public IntPtr Address
         {
             get { return m_address; }
+        }
+
+        public long BufferAddress
+        {
+            get { return m_pinnedBuffer != null ? m_pinnedBuffer.Address : 0; }
         }
 
         public OperationType OperationType { get; private set; }
@@ -71,9 +83,26 @@ namespace AsyncIO.Windows
 
         public void StartOperation(OperationType operationType)
         {
+            StartOperation(operationType, null);
+
+        }
+        public void StartOperation(OperationType operationType, byte[] buffer)
+        {
             InProgress = true;
             Success = false;
             OperationType = operationType;
+
+            if (buffer != null)
+            {
+                if (m_pinnedBuffer == null)
+                {
+                    m_pinnedBuffer = new PinnedBuffer(buffer);
+                }
+                else if (m_pinnedBuffer.Buffer != buffer)
+                {
+                    m_pinnedBuffer.Switch(buffer);
+                }
+            }
         }
 
         public static Overlapped CompleteOperation(IntPtr overlappedAddress)

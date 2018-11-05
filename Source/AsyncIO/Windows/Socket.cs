@@ -22,11 +22,8 @@ namespace AsyncIO.Windows
         private IntPtr m_acceptSocketBufferAddress;
         private int m_acceptSocketBufferSize;
 
-        private PinnedBuffer m_sendPinnedBuffer;
-        private PinnedBuffer m_receivePinnedBuffer;
-
         private WSABuffer m_sendWSABuffer;
-        private WSABuffer m_receiveWSABuffer;        
+        private WSABuffer m_receiveWSABuffer;
 
         private Socket m_acceptSocket;
 
@@ -98,18 +95,6 @@ namespace AsyncIO.Windows
                     m_boundAddress.Dispose();
                     m_boundAddress = null;
                 }                
-
-                if (m_sendPinnedBuffer != null)
-                {
-                    m_sendPinnedBuffer.Dispose();
-                    m_sendPinnedBuffer = null;
-                }
-
-                if (m_receivePinnedBuffer != null)
-                {
-                    m_receivePinnedBuffer.Dispose();
-                    m_receivePinnedBuffer = null;
-                }
 
                 if (m_acceptSocketBufferAddress != IntPtr.Zero)
                 {
@@ -557,18 +542,9 @@ namespace AsyncIO.Windows
 
             int bytesTransferred;
 
-            if (m_sendPinnedBuffer == null)
-            {
-                m_sendPinnedBuffer = new PinnedBuffer(buffer);
-            }
-            else if (m_sendPinnedBuffer.Buffer != buffer)
-            {
-                m_sendPinnedBuffer.Switch(buffer);
-            }
+            m_outOverlapped.StartOperation(OperationType.Send, buffer);
 
-            m_outOverlapped.StartOperation(OperationType.Send);
-
-            m_sendWSABuffer.Pointer = new IntPtr(m_sendPinnedBuffer.Address + offset);
+            m_sendWSABuffer.Pointer = new IntPtr(m_outOverlapped.BufferAddress + offset);
             m_sendWSABuffer.Length = count;
 
             SocketError socketError = UnsafeMethods.WSASend(Handle, ref m_sendWSABuffer, 1,
@@ -590,18 +566,9 @@ namespace AsyncIO.Windows
             if (buffer == null)
                 throw new ArgumentNullException("buffer");
 
-            if (m_receivePinnedBuffer == null)
-            {
-                m_receivePinnedBuffer = new PinnedBuffer(buffer);
-            }
-            else if (m_receivePinnedBuffer.Buffer != buffer)
-            {
-                m_receivePinnedBuffer.Switch(buffer);
-            }
+            m_inOverlapped.StartOperation(OperationType.Receive, buffer);
 
-            m_inOverlapped.StartOperation(OperationType.Receive);
-
-            m_receiveWSABuffer.Pointer = new IntPtr(m_receivePinnedBuffer.Address + offset);
+            m_receiveWSABuffer.Pointer = new IntPtr(m_inOverlapped.BufferAddress + offset);
             m_receiveWSABuffer.Length = count;
 
             int bytesTransferred;
