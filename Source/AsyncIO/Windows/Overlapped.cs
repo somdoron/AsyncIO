@@ -11,7 +11,7 @@ namespace AsyncIO.Windows
         private static readonly int OffsetOffset = IntPtr.Size * 2;
         private static readonly int EventOffset = IntPtr.Size * 2 + sizeof(int) * 2;
 
-        private static readonly int MangerOverlappedOffset = IntPtr.Size * 3 + sizeof(int) * 2;                
+        private static readonly int ManagedOverlappedOffset = IntPtr.Size * 3 + sizeof(int) * 2;                
 
         private IntPtr m_address;
         private GCHandle m_handle;
@@ -29,7 +29,7 @@ namespace AsyncIO.Windows
 
             m_handle = GCHandle.Alloc(this, GCHandleType.Normal);
 
-            Marshal.WriteIntPtr(m_address, MangerOverlappedOffset, GCHandle.ToIntPtr(m_handle));            
+            Marshal.WriteIntPtr(m_address, ManagedOverlappedOffset, GCHandle.ToIntPtr(m_handle));            
         }
 
         public void Dispose()
@@ -78,7 +78,7 @@ namespace AsyncIO.Windows
 
         public static Overlapped CompleteOperation(IntPtr overlappedAddress)
         {
-            IntPtr managedOverlapped = Marshal.ReadIntPtr(overlappedAddress, MangerOverlappedOffset);
+            IntPtr managedOverlapped = Marshal.ReadIntPtr(overlappedAddress, ManagedOverlappedOffset);
 
             GCHandle handle = GCHandle.FromIntPtr(managedOverlapped);
 

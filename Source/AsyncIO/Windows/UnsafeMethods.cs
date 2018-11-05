@@ -97,7 +97,7 @@ namespace AsyncIO.Windows
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool GetQueuedCompletionStatusEx(IntPtr completionPort, IntPtr completionPortEntries,
-                                                            int count, out int removoed, int milliseconds, bool alertable);
+                                                            int count, out int removed, int milliseconds, bool alertable);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool PostQueuedCompletionStatus(IntPtr completionPort, int numberOfBytesTransferred,
