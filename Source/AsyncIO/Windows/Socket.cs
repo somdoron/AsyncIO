@@ -22,12 +22,6 @@ namespace AsyncIO.Windows
         private IntPtr m_acceptSocketBufferAddress;
         private int m_acceptSocketBufferSize;
 
-        private PinnedBuffer m_sendPinnedBuffer;
-        private PinnedBuffer m_receivePinnedBuffer;
-
-        private WSABuffer m_sendWSABuffer;
-        private WSABuffer m_receiveWSABuffer;        
-
         private Socket m_acceptSocket;
 
         public Socket(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
@@ -37,9 +31,6 @@ namespace AsyncIO.Windows
 
             m_inOverlapped = new Overlapped(this);
             m_outOverlapped = new Overlapped(this);
-
-            m_sendWSABuffer = new WSABuffer();
-            m_receiveWSABuffer = new WSABuffer();
 
             InitSocket();
             InitDynamicMethods();
@@ -98,18 +89,6 @@ namespace AsyncIO.Windows
                     m_boundAddress.Dispose();
                     m_boundAddress = null;
                 }                
-
-                if (m_sendPinnedBuffer != null)
-                {
-                    m_sendPinnedBuffer.Dispose();
-                    m_sendPinnedBuffer = null;
-                }
-
-                if (m_receivePinnedBuffer != null)
-                {
-                    m_receivePinnedBuffer.Dispose();
-                    m_receivePinnedBuffer = null;
-                }
 
                 if (m_acceptSocketBufferAddress != IntPtr.Zero)
                 {
@@ -557,21 +536,13 @@ namespace AsyncIO.Windows
 
             int bytesTransferred;
 
-            if (m_sendPinnedBuffer == null)
-            {
-                m_sendPinnedBuffer = new PinnedBuffer(buffer);
-            }
-            else if (m_sendPinnedBuffer.Buffer != buffer)
-            {
-                m_sendPinnedBuffer.Switch(buffer);
-            }
+            m_outOverlapped.StartOperation(OperationType.Send, buffer);
 
-            m_outOverlapped.StartOperation(OperationType.Send);
+            WSABuffer wsaBuffer = new WSABuffer();
+            wsaBuffer.Pointer = new IntPtr(m_outOverlapped.BufferAddress + offset);
+            wsaBuffer.Length = count;
 
-            m_sendWSABuffer.Pointer = new IntPtr(m_sendPinnedBuffer.Address + offset);
-            m_sendWSABuffer.Length = count;
-
-            SocketError socketError = UnsafeMethods.WSASend(Handle, ref m_sendWSABuffer, 1,
+            SocketError socketError = UnsafeMethods.WSASend(Handle, ref wsaBuffer, 1,
               out bytesTransferred, flags, m_outOverlapped.Address, IntPtr.Zero);
 
             if (socketError != SocketError.Success)
@@ -590,23 +561,15 @@ namespace AsyncIO.Windows
             if (buffer == null)
                 throw new ArgumentNullException("buffer");
 
-            if (m_receivePinnedBuffer == null)
-            {
-                m_receivePinnedBuffer = new PinnedBuffer(buffer);
-            }
-            else if (m_receivePinnedBuffer.Buffer != buffer)
-            {
-                m_receivePinnedBuffer.Switch(buffer);
-            }
+            m_inOverlapped.StartOperation(OperationType.Receive, buffer);
 
-            m_inOverlapped.StartOperation(OperationType.Receive);
-
-            m_receiveWSABuffer.Pointer = new IntPtr(m_receivePinnedBuffer.Address + offset);
-            m_receiveWSABuffer.Length = count;
+            WSABuffer wsaBuffer = new WSABuffer();
+            wsaBuffer.Pointer = new IntPtr(m_inOverlapped.BufferAddress + offset);
+            wsaBuffer.Length = count;
 
             int bytesTransferred;
 
-            SocketError socketError = UnsafeMethods.WSARecv(Handle, ref m_receiveWSABuffer, 1,
+            SocketError socketError = UnsafeMethods.WSARecv(Handle, ref wsaBuffer, 1,
               out bytesTransferred, ref flags, m_inOverlapped.Address, IntPtr.Zero);
 
             if (socketError != SocketError.Success)
