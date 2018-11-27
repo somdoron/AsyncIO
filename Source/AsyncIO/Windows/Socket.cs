@@ -8,24 +8,16 @@ using System.Threading;
 
 namespace AsyncIO.Windows
 {
-    internal class Socket : AsyncSocket
+    internal sealed class Socket : AsyncSocket
     {
         private Overlapped m_inOverlapped;
         private Overlapped m_outOverlapped;
 
-        private ConnectExDelegate m_connectEx;
-        private AcceptExDelegate m_acceptEx;
+        private Connector m_connector;
+        private Listener m_listener;
         private bool m_disposed;
         private SocketAddress m_boundAddress;
         private SocketAddress m_remoteAddress;
-
-        private IntPtr m_acceptSocketBufferAddress;
-        private int m_acceptSocketBufferSize;
-
-        private WSABuffer m_sendWSABuffer;
-        private WSABuffer m_receiveWSABuffer;
-
-        private Socket m_acceptSocket;
 
         public Socket(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
             : base(addressFamily, socketType, protocolType)
@@ -35,11 +27,7 @@ namespace AsyncIO.Windows
             m_inOverlapped = new Overlapped(this);
             m_outOverlapped = new Overlapped(this);
 
-            m_sendWSABuffer = new WSABuffer();
-            m_receiveWSABuffer = new WSABuffer();
-
             InitSocket();
-            InitDynamicMethods();
         }
 
         static Socket()
@@ -94,15 +82,12 @@ namespace AsyncIO.Windows
                 {
                     m_boundAddress.Dispose();
                     m_boundAddress = null;
-                }                
-
-                if (m_acceptSocketBufferAddress != IntPtr.Zero)
-                {
-                    Marshal.FreeHGlobal(m_acceptSocketBufferAddress);
                 }
 
-                if (m_acceptSocket != null)  
-                    m_acceptSocket.Dispose();                    
+                if (m_listener != null)
+                {
+                    m_listener.Dispose();
+                }
             }
         }
 
@@ -161,15 +146,6 @@ namespace AsyncIO.Windows
             {
                 throw new SocketException();
             }
-        }
-
-        private void InitDynamicMethods()
-        {
-            m_connectEx =
-              (ConnectExDelegate)LoadDynamicMethod<ConnectExDelegate>(UnsafeMethods.WSAID_CONNECTEX);
-
-            m_acceptEx =
-              (AcceptExDelegate)LoadDynamicMethod<AcceptExDelegate>(UnsafeMethods.WSAID_ACCEPT_EX);
         }
 
 #if NETSTANDARD1_6
@@ -425,6 +401,7 @@ namespace AsyncIO.Windows
             {
                 throw new SocketException();
             }
+            m_listener = new Listener(this);
         }
 
         public override void Connect(IPEndPoint endPoint)
@@ -449,7 +426,7 @@ namespace AsyncIO.Windows
 
             m_outOverlapped.StartOperation(OperationType.Connect);
 
-            if (m_connectEx(Handle, m_remoteAddress.Buffer, m_remoteAddress.Size, IntPtr.Zero, 0,
+            if ((m_connector ?? (m_connector = new Connector(this))).m_connectEx(Handle, m_remoteAddress.Buffer, m_remoteAddress.Size, IntPtr.Zero, 0,
                 out bytesSend, m_outOverlapped.Address))
             {                
                 CompletionPort.PostCompletionStatus(m_outOverlapped.Address);
@@ -472,51 +449,17 @@ namespace AsyncIO.Windows
 
         public override AsyncSocket GetAcceptedSocket()
         {
-            var temp = m_acceptSocket;
-            m_acceptSocket = null;
-            return temp;            
+            return m_listener.GetAcceptedSocket();
         }
 
         public override void Accept()
         {
-            AcceptInternal(new Socket(this.AddressFamily, this.SocketType, this.ProtocolType));
+            m_listener.AcceptInternal(new Socket(this.AddressFamily, this.SocketType, this.ProtocolType));
         }
 
         public override void Accept(AsyncSocket socket)
         {
-            AcceptInternal(socket);
-        }
-
-        public void AcceptInternal(AsyncSocket socket)
-        {
-            if (m_acceptSocketBufferAddress == IntPtr.Zero)
-            {
-                m_acceptSocketBufferSize = m_boundAddress.Size + 16;
-
-                m_acceptSocketBufferAddress = Marshal.AllocHGlobal(m_acceptSocketBufferSize << 1);
-            }
-
-            int bytesReceived;
-
-            m_acceptSocket = socket as Windows.Socket;
-
-            m_inOverlapped.StartOperation(OperationType.Accept);
-
-            if (!m_acceptEx(Handle, m_acceptSocket.Handle, m_acceptSocketBufferAddress, 0,
-                  m_acceptSocketBufferSize,
-                  m_acceptSocketBufferSize, out bytesReceived, m_inOverlapped.Address))
-            {
-                var socketError = (SocketError)Marshal.GetLastWin32Error();
-
-                if (socketError != SocketError.IOPending)
-                {
-                    throw new SocketException((int)socketError);
-                }                
-            }
-            else
-            {                
-                CompletionPort.PostCompletionStatus(m_inOverlapped.Address);
-            }
+            m_listener.AcceptInternal(socket);
         }
 
         internal void UpdateAccept()
@@ -532,7 +475,7 @@ namespace AsyncIO.Windows
                 address = BitConverter.GetBytes(Handle.ToInt64());
             }
 
-            m_acceptSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.UpdateAcceptContext, address);            
+            m_listener.m_acceptSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.UpdateAcceptContext, address);            
         }
 
         public override void Send(byte[] buffer, int offset, int count, SocketFlags flags)
@@ -544,10 +487,13 @@ namespace AsyncIO.Windows
 
             m_outOverlapped.StartOperation(OperationType.Send, buffer);
 
-            m_sendWSABuffer.Pointer = new IntPtr(m_outOverlapped.BufferAddress + offset);
-            m_sendWSABuffer.Length = count;
+            var sendBuffer = new WSABuffer
+            {
+                Pointer = new IntPtr(m_outOverlapped.BufferAddress + offset),
+                Length = count
+            };
 
-            SocketError socketError = UnsafeMethods.WSASend(Handle, ref m_sendWSABuffer, 1,
+            SocketError socketError = UnsafeMethods.WSASend(Handle, ref sendBuffer, 1,
               out bytesTransferred, flags, m_outOverlapped.Address, IntPtr.Zero);
 
             if (socketError != SocketError.Success)
@@ -568,12 +514,13 @@ namespace AsyncIO.Windows
 
             m_inOverlapped.StartOperation(OperationType.Receive, buffer);
 
-            m_receiveWSABuffer.Pointer = new IntPtr(m_inOverlapped.BufferAddress + offset);
-            m_receiveWSABuffer.Length = count;
+            var receiveBuffer = new WSABuffer();
+            receiveBuffer.Pointer = new IntPtr(m_inOverlapped.BufferAddress + offset);
+            receiveBuffer.Length = count;
 
             int bytesTransferred;
 
-            SocketError socketError = UnsafeMethods.WSARecv(Handle, ref m_receiveWSABuffer, 1,
+            SocketError socketError = UnsafeMethods.WSARecv(Handle, ref receiveBuffer, 1,
               out bytesTransferred, ref flags, m_inOverlapped.Address, IntPtr.Zero);
 
             if (socketError != SocketError.Success)
@@ -587,6 +534,92 @@ namespace AsyncIO.Windows
             }          
         }
 
-       
+        sealed class Connector
+        {
+            internal readonly ConnectExDelegate m_connectEx;
+
+            public Connector(Socket socket)
+            {
+                m_connectEx =
+                    (ConnectExDelegate)socket.LoadDynamicMethod<ConnectExDelegate>(UnsafeMethods.WSAID_CONNECTEX);
+            }
+        }
+
+        sealed class Listener : IDisposable
+        {
+            private readonly Socket m_socket;
+            internal readonly AcceptExDelegate m_acceptEx;
+            private IntPtr m_acceptSocketBufferAddress;
+            private int m_acceptSocketBufferSize;
+            internal Socket m_acceptSocket;
+
+            public Listener(Socket socket)
+            {
+                m_socket = socket;
+                m_acceptEx =
+                    (AcceptExDelegate)m_socket.LoadDynamicMethod<AcceptExDelegate>(UnsafeMethods.WSAID_ACCEPT_EX);
+            }
+            ~Listener()
+            {
+                Dispose(false);
+            }
+            public Socket GetAcceptedSocket()
+            {
+                return Interlocked.Exchange(ref m_acceptSocket, null);
+            }
+
+            public void Dispose()
+            {
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+
+            public void AcceptInternal(AsyncSocket socket)
+            {
+                if (m_acceptSocketBufferAddress == IntPtr.Zero)
+                {
+                    m_acceptSocketBufferSize = m_socket.m_boundAddress.Size + 16;
+
+                    m_acceptSocketBufferAddress = Marshal.AllocHGlobal(m_acceptSocketBufferSize << 1);
+                }
+
+                int bytesReceived;
+
+                m_acceptSocket = socket as Windows.Socket;
+
+                m_socket.m_inOverlapped.StartOperation(OperationType.Accept);
+
+                if (!m_acceptEx(m_socket.Handle, m_acceptSocket.Handle, m_acceptSocketBufferAddress, 0,
+                      m_acceptSocketBufferSize,
+                      m_acceptSocketBufferSize, out bytesReceived, m_socket.m_inOverlapped.Address))
+                {
+                    var socketError = (SocketError)Marshal.GetLastWin32Error();
+
+                    if (socketError != SocketError.IOPending)
+                    {
+                        throw new SocketException((int)socketError);
+                    }
+                }
+                else
+                {
+                    m_socket.CompletionPort.PostCompletionStatus(m_socket.m_inOverlapped.Address);
+                }
+            }
+
+            void Dispose(bool disposing)
+            {
+                if (m_acceptSocketBufferAddress != IntPtr.Zero)
+                {
+                    Marshal.FreeHGlobal(m_acceptSocketBufferAddress);
+                    m_acceptSocketBufferAddress = IntPtr.Zero;
+                }
+
+                if (m_acceptSocket != null)
+                {
+                    m_acceptSocket.Dispose(disposing);
+                    m_acceptSocket = null;
+                }
+            }
+        }
     }
 }
