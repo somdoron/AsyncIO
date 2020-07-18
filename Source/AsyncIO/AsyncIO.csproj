@@ -22,6 +22,7 @@
     <PackageProjectUrl>https://github.com/somdoron/AsyncIO</PackageProjectUrl>
     <RepositoryUrl>https://github.com/somdoron/AsyncIO</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
+    <PackageLicenseExpression>MPL-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
